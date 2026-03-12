@@ -12,6 +12,9 @@ dependencies = [
 [project.scripts]
 podojo = "podojo_cli.main:app"
 
+[dependency-groups]
+dev = ["pytest>=8.0", "pytest-httpx>=0.35"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

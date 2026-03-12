@@ -8,7 +8,7 @@ CLI tool for the Podojo user research platform. Part of the Podojo multi-repo ar
 - Typer for CLI framework
 - httpx for HTTP client
 - Rich for terminal output
-- ffmpeg for video editing (planned)
+- ffmpeg for video editing (system dependency, install via `brew install ffmpeg`)
 
 ## Usage
 
@@ -18,6 +18,7 @@ podojo transcripts list <project>
 podojo transcripts download <project> <batch_id> -o output.txt
 podojo videos list <project>
 podojo videos download <batch_id> -o output.mp4
+podojo showreel create clips.json -o showreel.mp4
 ```
 
 ## Configuration

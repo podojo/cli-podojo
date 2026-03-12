@@ -1,6 +1,6 @@
 import typer
 
-from .commands import projects, transcripts, videos
+from .commands import projects, showreel, transcripts, videos
 
 app = typer.Typer(
     name="podojo",
@@ -11,6 +11,7 @@ app = typer.Typer(
 app.add_typer(projects.app, name="projects")
 app.add_typer(transcripts.app, name="transcripts")
 app.add_typer(videos.app, name="videos")
+app.add_typer(showreel.app, name="showreel")
 
 if __name__ == "__main__":
     app()
