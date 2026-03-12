@@ -21,6 +21,8 @@ podojo transcripts download <project> <batch_id> -o output.txt
 podojo videos list <project>
 podojo videos download <batch_id> -o output.mp4
 podojo showreel create clips.json -o showreel.mp4
+podojo gdrive setup ~/.podojo-gdrive.json
+podojo gdrive upload report.md --title "My Report"
 ```
 
 ## Configuration

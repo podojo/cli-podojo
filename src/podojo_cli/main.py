@@ -1,6 +1,6 @@
 import typer
 
-from .commands import auth, projects, showreel, transcripts, videos
+from .commands import auth, gdrive, projects, showreel, transcripts, videos
 
 app = typer.Typer(
     name="podojo",
@@ -13,6 +13,7 @@ app.add_typer(projects.app, name="projects")
 app.add_typer(transcripts.app, name="transcripts")
 app.add_typer(videos.app, name="videos")
 app.add_typer(showreel.app, name="showreel")
+app.add_typer(gdrive.app, name="gdrive")
 
 if __name__ == "__main__":
     app()
