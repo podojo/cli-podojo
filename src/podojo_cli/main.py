@@ -1,6 +1,6 @@
 import typer
 
-from .commands import projects, showreel, transcripts, videos
+from .commands import auth, projects, showreel, transcripts, videos
 
 app = typer.Typer(
     name="podojo",
@@ -8,6 +8,7 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
+app.add_typer(auth.app, name="auth")
 app.add_typer(projects.app, name="projects")
 app.add_typer(transcripts.app, name="transcripts")
 app.add_typer(videos.app, name="videos")

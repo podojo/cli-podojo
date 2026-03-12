@@ -13,6 +13,8 @@ CLI tool for the Podojo user research platform. Part of the Podojo multi-repo ar
 ## Usage
 
 ```bash
+podojo auth login <api-key>
+podojo auth logout
 podojo projects list
 podojo transcripts list <project>
 podojo transcripts download <project> <batch_id> -o output.txt
