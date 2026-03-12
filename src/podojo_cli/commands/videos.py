@@ -43,7 +43,7 @@ def download_video(
     data = client.get_video_url(batch_id)
     url = data["url"]
 
-    filename = output or Path(f"{data.get('batch_name', batch_id)}.mp4")
+    filename = output or Path(data.get("filename", f"{batch_id}.mp4"))
 
     with httpx.stream("GET", url) as r:
         r.raise_for_status()
