@@ -19,7 +19,7 @@ class PodojoClient:
             headers=self._headers(),
         )
         r.raise_for_status()
-        return r.json()
+        return r.json()["projects"]
 
     def list_transcripts(self, project: str) -> dict:
         r = httpx.get(

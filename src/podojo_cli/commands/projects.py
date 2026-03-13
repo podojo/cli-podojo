@@ -19,9 +19,9 @@ def list_projects(
 
     table = Table(title="Projects")
     table.add_column("Name")
-    table.add_column("Description")
+    table.add_column("Brief")
 
     for p in projects:
-        table.add_row(p.get("project_name", ""), p.get("description", ""))
+        table.add_row(p.get("name", ""), p.get("brief", ""))
 
     console.print(table)
