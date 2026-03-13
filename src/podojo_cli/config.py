@@ -17,15 +17,6 @@ def load_config() -> dict:
     return config
 
 
-def save_gdrive_credentials(path: str):
-    config = {}
-    if CONFIG_PATH.exists():
-        config = tomllib.loads(CONFIG_PATH.read_text())
-    config["gdrive_credentials"] = path
-    lines = "\n".join(f'{k} = "{v}"' for k, v in config.items())
-    CONFIG_PATH.write_text(lines + "\n")
-
-
 def save_config(api_key: str):
     config = {}
     if CONFIG_PATH.exists():

@@ -1,18 +1,22 @@
 """Upload a markdown file to Google Drive as a Google Doc."""
 
 import os
+from pathlib import Path
 
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
 
-DEFAULT_FOLDER_ID = "REDACTED"  # "UX Reports" shared folder
+CREDENTIALS_FILENAME = "service-account.json"
 
 
-def get_drive_service(credentials_path: str):
+def get_drive_service():
+    credentials_path = Path.cwd() / CREDENTIALS_FILENAME
+    if not credentials_path.exists():
+        raise FileNotFoundError(f"{CREDENTIALS_FILENAME} not found in current directory")
     creds = Credentials.from_service_account_file(
-        credentials_path,
+        str(credentials_path),
         scopes=["https://www.googleapis.com/auth/drive"],
     )
     return build("drive", "v3", credentials=creds)
@@ -20,16 +24,15 @@ def get_drive_service(credentials_path: str):
 
 def upload_md_as_doc(
     md_file: str,
-    credentials_path: str,
+    folder_id: str,
     title: str | None = None,
-    folder_id: str | None = None,
 ) -> tuple[str, str]:
-    drive = get_drive_service(credentials_path)
+    drive = get_drive_service()
 
     if not title:
         title = os.path.splitext(os.path.basename(md_file))[0]
 
-    parent = folder_id or DEFAULT_FOLDER_ID
+    parent = folder_id
 
     media = MediaFileUpload(md_file, mimetype="text/markdown")
     file_metadata = {
