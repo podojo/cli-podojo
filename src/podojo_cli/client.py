@@ -52,3 +52,46 @@ class PodojoClient:
         )
         r.raise_for_status()
         return r.json()
+
+    def list_sessions(self, skip: int = 0, limit: int = 50) -> dict:
+        r = httpx.get(
+            f"{self.base_url}/sessions",
+            params={"skip": skip, "limit": limit},
+            headers=self._headers(),
+        )
+        r.raise_for_status()
+        return r.json()
+
+    def get_session(self, session_id: str) -> dict:
+        r = httpx.get(
+            f"{self.base_url}/sessions/{session_id}",
+            headers=self._headers(),
+        )
+        r.raise_for_status()
+        return r.json()
+
+    def create_session(self, data: dict) -> dict:
+        r = httpx.post(
+            f"{self.base_url}/sessions",
+            json=data,
+            headers=self._headers(),
+        )
+        r.raise_for_status()
+        return r.json()
+
+    def update_session(self, session_id: str, data: dict) -> dict:
+        r = httpx.put(
+            f"{self.base_url}/sessions/{session_id}",
+            json=data,
+            headers=self._headers(),
+        )
+        r.raise_for_status()
+        return r.json()
+
+    def delete_session(self, session_id: str) -> dict:
+        r = httpx.delete(
+            f"{self.base_url}/sessions/{session_id}",
+            headers=self._headers(),
+        )
+        r.raise_for_status()
+        return r.json()

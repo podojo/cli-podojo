@@ -25,6 +25,22 @@ podojo gdrive setup ~/.podojo-gdrive.json
 podojo gdrive upload report.md --title "My Report"
 ```
 
+## Sessions (Unmoderated Tests)
+
+```bash
+podojo sessions list
+podojo sessions get <session_id>
+podojo sessions create --from-file session.yaml
+podojo sessions update <session_id> --from-file updates.yaml
+podojo sessions delete <session_id> [--yes]
+podojo sessions example              # print template YAML to stdout
+podojo sessions validate session.yaml # validate without creating
+```
+
+Session configs are YAML files. Run `podojo sessions example` for the full template.
+Required fields: `session_id`, `client`, `title`, `logo`, `prototype_url`, `steps`.
+Each step needs `type` ("screen" or "prototype") and `title`. Screen steps should have `variant` ("question" or "task").
+
 ## Configuration
 
 Set via env vars or `~/.podojo.toml`:
