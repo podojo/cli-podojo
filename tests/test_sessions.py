@@ -23,6 +23,7 @@ LIST_RESPONSE = {
             "title": "Session One",
             "client": "Acme",
             "step_count": 3,
+            "live": True,
             "last_updated": "2026-03-01T12:00:00",
         },
         {
@@ -30,6 +31,7 @@ LIST_RESPONSE = {
             "title": "Session Two",
             "client": "Beta",
             "step_count": 5,
+            "live": False,
             "last_updated": "2026-03-02T12:00:00",
         },
     ],

@@ -49,6 +49,9 @@ promo_code_info: "Use this code for 10% off your next purchase"
 # Optional: link session to a project
 project_name: checkout-redesign-q1
 
+# Optional: set session live (default: false)
+# live: true
+
 # Steps define what participants see and do
 # Each step requires: type ("screen" or "prototype") and title
 # Screen steps should have a variant: "question" (open-ended) or "task" (action-based)
@@ -173,14 +176,17 @@ def list_sessions(
     table.add_column("Title")
     table.add_column("Client")
     table.add_column("Steps", justify="right")
+    table.add_column("Live")
     table.add_column("Last Updated")
 
     for s in sessions:
+        live = "[green]Yes[/green]" if s.get("live") else "[dim]No[/dim]"
         table.add_row(
             s.get("session_id", ""),
             s.get("title", ""),
             s.get("client", ""),
             str(s.get("step_count", "")),
+            live,
             s.get("last_updated", ""),
         )
 
