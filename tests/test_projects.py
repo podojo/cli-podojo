@@ -4,10 +4,15 @@ from podojo_cli.main import app
 def test_list_projects(runner, httpx_mock):
     httpx_mock.add_response(
         url="http://test.local/api/v1/projects?skip=0&limit=50",
-        json=[
-            {"project_name": "Alpha", "description": "First project"},
-            {"project_name": "Beta", "description": "Second project"},
-        ],
+        json={
+            "projects": [
+                {"name": "Alpha", "brief": "First project"},
+                {"name": "Beta", "brief": "Second project"},
+            ],
+            "total": 2,
+            "skip": 0,
+            "limit": 50,
+        },
     )
 
     result = runner.invoke(app, ["projects", "list"])
@@ -20,7 +25,12 @@ def test_list_projects(runner, httpx_mock):
 def test_list_projects_empty(runner, httpx_mock):
     httpx_mock.add_response(
         url="http://test.local/api/v1/projects?skip=0&limit=50",
-        json=[],
+        json={
+            "projects": [],
+            "total": 0,
+            "skip": 0,
+            "limit": 50,
+        },
     )
 
     result = runner.invoke(app, ["projects", "list"])
