@@ -229,6 +229,9 @@ def create_session(
             console.print(f"  {err}")
         raise typer.Exit(1)
 
+    if "project_name" not in data:
+        data["project_name"] = data["session_id"]
+
     client = PodojoClient()
     try:
         result = client.create_session(data)
