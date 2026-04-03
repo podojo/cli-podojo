@@ -8,21 +8,21 @@ from rich.table import Table
 
 from ..client import PodojoClient
 
-app = typer.Typer(help="Manage unmoderated test sessions")
+app = typer.Typer(help="Manage unmoderated user tests")
 console = Console()
 
-REQUIRED_FIELDS = ["session_id", "client", "title", "logo", "prototype_url", "steps"]
+REQUIRED_FIELDS = ["usertest_id", "client", "title", "logo", "prototype_url", "steps"]
 VALID_STEP_TYPES = {"screen", "prototype"}
 VALID_STEP_VARIANTS = {"question", "task"}
 REQUIRED_STEP_FIELDS = ["type", "title"]
 
 EXAMPLE_YAML = """\
-# Podojo Unmoderated Test Session Configuration
+# Podojo Unmoderated User Test Configuration
 #
-# Required fields: session_id, client, title, logo, prototype_url, steps
+# Required fields: usertest_id, client, title, logo, prototype_url, steps
 # Optional fields: welcome_text, privacy_text, promo_code, promo_code_info, project_name
 
-session_id: checkout-usability-v1
+usertest_id: checkout-usability-v1
 client: Acme Corp
 title: Checkout Flow Usability Test
 logo: https://example.com/logo.png
@@ -46,10 +46,10 @@ privacy_text: |
 promo_code: THANKS10
 promo_code_info: "Use this code for 10% off your next purchase"
 
-# Optional: link session to a project
+# Optional: link user test to a project
 project_name: checkout-redesign-q1
 
-# Optional: set session live (default: false)
+# Optional: set user test live (default: false)
 # live: true
 
 # Steps define what participants see and do
@@ -87,8 +87,8 @@ steps:
 """
 
 
-def validate_session_data(data: dict) -> list[str]:
-    """Validate session YAML data, return list of error strings."""
+def validate_usertest_data(data: dict) -> list[str]:
+    """Validate user test YAML data, return list of error strings."""
     errors = []
     for field in REQUIRED_FIELDS:
         if field not in data or data[field] is None:
@@ -154,35 +154,35 @@ def _format_api_error(e: httpx.HTTPStatusError) -> str:
 
 
 @app.command("list")
-def list_sessions(
-    skip: int = typer.Option(0, help="Number of sessions to skip"),
-    limit: int = typer.Option(50, help="Max sessions to return"),
+def list_usertests(
+    skip: int = typer.Option(0, help="Number of user tests to skip"),
+    limit: int = typer.Option(50, help="Max user tests to return"),
 ):
-    """List all sessions."""
+    """List all user tests."""
     client = PodojoClient()
     try:
-        result = client.list_sessions(skip=skip, limit=limit)
+        result = client.list_usertests(skip=skip, limit=limit)
     except httpx.HTTPStatusError as e:
         console.print(f"[red]Error:[/red] {_format_api_error(e)}")
         raise typer.Exit(1)
 
-    sessions = result.get("sessions", [])
-    if not sessions:
-        console.print("No sessions found.")
+    usertests = result.get("usertests", [])
+    if not usertests:
+        console.print("No user tests found.")
         return
 
-    table = Table(title="Sessions")
-    table.add_column("Session ID")
+    table = Table(title="User Tests")
+    table.add_column("User Test ID")
     table.add_column("Title")
     table.add_column("Client")
     table.add_column("Steps", justify="right")
     table.add_column("Live")
     table.add_column("Last Updated")
 
-    for s in sessions:
+    for s in usertests:
         live = "[green]Yes[/green]" if s.get("live") else "[dim]No[/dim]"
         table.add_row(
-            s.get("session_id", ""),
+            s.get("usertest_id", ""),
             s.get("title", ""),
             s.get("client", ""),
             str(s.get("step_count", "")),
@@ -194,35 +194,35 @@ def list_sessions(
 
 
 @app.command("get")
-def get_session(
-    session_id: str = typer.Argument(help="Session ID to retrieve"),
+def get_usertest(
+    usertest_id: str = typer.Argument(help="User test ID to retrieve"),
 ):
-    """Get a session and output as YAML."""
+    """Get a user test and output as YAML."""
     client = PodojoClient()
     try:
-        session = client.get_session(session_id)
+        usertest = client.get_usertest(usertest_id)
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
-            console.print(f"[red]Error:[/red] Session '{session_id}' not found")
+            console.print(f"[red]Error:[/red] User test '{usertest_id}' not found")
         else:
             console.print(f"[red]Error:[/red] {_format_api_error(e)}")
         raise typer.Exit(1)
 
     # Remove server-managed fields for a clean editable output
     for key in ("id", "created_at", "created_by", "last_updated"):
-        session.pop(key, None)
+        usertest.pop(key, None)
 
-    console.print(yaml.dump(session, default_flow_style=False, sort_keys=False, allow_unicode=True))
+    console.print(yaml.dump(usertest, default_flow_style=False, sort_keys=False, allow_unicode=True))
 
 
 @app.command("create")
-def create_session(
-    from_file: Path = typer.Option(..., "--from-file", "-f", help="YAML file with session config"),
+def create_usertest(
+    from_file: Path = typer.Option(..., "--from-file", "-f", help="YAML file with user test config"),
 ):
-    """Create a new session from a YAML file."""
+    """Create a new user test from a YAML file."""
     data = _load_yaml(from_file)
 
-    errors = validate_session_data(data)
+    errors = validate_usertest_data(data)
     if errors:
         console.print("[red]Validation errors:[/red]")
         for err in errors:
@@ -230,82 +230,82 @@ def create_session(
         raise typer.Exit(1)
 
     if "project_name" not in data:
-        data["project_name"] = data["session_id"]
+        data["project_name"] = data["usertest_id"]
 
     client = PodojoClient()
     try:
-        result = client.create_session(data)
+        result = client.create_usertest(data)
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 409:
-            console.print(f"[red]Error:[/red] Session '{data.get('session_id')}' already exists")
+            console.print(f"[red]Error:[/red] User test '{data.get('usertest_id')}' already exists")
         else:
             console.print(f"[red]Error:[/red] {_format_api_error(e)}")
         raise typer.Exit(1)
 
-    console.print(f"[green]Created session:[/green] {result.get('session_id', '')}")
+    console.print(f"[green]Created user test:[/green] {result.get('usertest_id', '')}")
 
 
 @app.command("update")
-def update_session(
-    session_id: str = typer.Argument(help="Session ID to update"),
+def update_usertest(
+    usertest_id: str = typer.Argument(help="User test ID to update"),
     from_file: Path = typer.Option(..., "--from-file", "-f", help="YAML file with fields to update"),
 ):
-    """Update a session from a YAML file (partial updates OK)."""
+    """Update a user test from a YAML file (partial updates OK)."""
     data = _load_yaml(from_file)
 
     client = PodojoClient()
     try:
-        result = client.update_session(session_id, data)
+        result = client.update_usertest(usertest_id, data)
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
-            console.print(f"[red]Error:[/red] Session '{session_id}' not found")
+            console.print(f"[red]Error:[/red] User test '{usertest_id}' not found")
         else:
             console.print(f"[red]Error:[/red] {_format_api_error(e)}")
         raise typer.Exit(1)
 
-    console.print(f"[green]Updated session:[/green] {result.get('session_id', session_id)}")
+    console.print(f"[green]Updated user test:[/green] {result.get('usertest_id', usertest_id)}")
 
 
 @app.command("delete")
-def delete_session(
-    session_id: str = typer.Argument(help="Session ID to delete"),
+def delete_usertest(
+    usertest_id: str = typer.Argument(help="User test ID to delete"),
     yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
 ):
-    """Delete a session."""
+    """Delete a user test."""
     if not yes:
-        typer.confirm(f"Delete session '{session_id}'?", abort=True)
+        typer.confirm(f"Delete user test '{usertest_id}'?", abort=True)
 
     client = PodojoClient()
     try:
-        client.delete_session(session_id)
+        client.delete_usertest(usertest_id)
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
-            console.print(f"[red]Error:[/red] Session '{session_id}' not found")
+            console.print(f"[red]Error:[/red] User test '{usertest_id}' not found")
         else:
             console.print(f"[red]Error:[/red] {_format_api_error(e)}")
         raise typer.Exit(1)
 
-    console.print(f"[green]Deleted session:[/green] {session_id}")
+    console.print(f"[green]Deleted user test:[/green] {usertest_id}")
 
 
 @app.command("validate")
 def validate(
     file: Path = typer.Argument(help="YAML file to validate"),
 ):
-    """Validate a session YAML file without creating it."""
+    """Validate a user test YAML file without creating it."""
     data = _load_yaml(file)
 
-    errors = validate_session_data(data)
+    errors = validate_usertest_data(data)
     if errors:
         console.print("[red]Validation errors:[/red]")
         for err in errors:
             console.print(f"  {err}")
         raise typer.Exit(1)
 
-    console.print("[green]Valid session config.[/green]")
+    console.print("[green]Valid user test config.[/green]")
 
 
 @app.command("example")
 def example():
-    """Print an example session YAML template."""
+    """Print an example user test YAML template."""
     print(EXAMPLE_YAML)
