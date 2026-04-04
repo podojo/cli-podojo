@@ -13,7 +13,7 @@ console = Console()
 
 REQUIRED_FIELDS = ["usertest_id", "title", "logo", "prototype_url", "steps"]
 VALID_STEP_TYPES = {"screen", "prototype"}
-VALID_STEP_VARIANTS = {"question", "task"}
+VALID_STEP_VARIANTS = {"question", "task", "intro", "feedback"}
 REQUIRED_STEP_FIELDS = ["type", "title"]
 
 EXAMPLE_YAML = """\
