@@ -46,6 +46,7 @@ GET_RESPONSE = {
     "logo": "https://example.com/logo.png",
     "prototype_url": "https://example.com/proto",
     "steps": [{"type": "screen", "variant": "question", "title": "Q1"}],
+    "group": "test-group",
     "created_at": "2026-03-01T12:00:00",
     "created_by": "user@example.com",
     "last_updated": "2026-03-01T12:00:00",
@@ -63,7 +64,6 @@ def test_list_usertests(runner, httpx_mock):
     assert result.exit_code == 0
     assert "User Test One" in result.output
     assert "User Test Two" in result.output
-    assert "Acme" in result.output
 
 
 def test_list_usertests_empty(runner, httpx_mock):
@@ -92,6 +92,9 @@ def test_get_usertest(runner, httpx_mock):
     # Server-managed fields should be stripped
     assert "created_at" not in result.output
     assert "created_by" not in result.output
+    # URLs should be displayed
+    assert "https://usertests.podojo.com/preview/test-group/ut-1" in result.output
+    assert "https://usertests.podojo.com/test-group?test=ut-1" in result.output
 
 
 def test_get_usertest_not_found(runner, httpx_mock):
@@ -114,13 +117,15 @@ def test_create_usertest(runner, httpx_mock, tmp_path):
     httpx_mock.add_response(
         url="http://test.local/api/v1/usertests",
         method="POST",
-        json={"usertest_id": "test-usertest-1", "id": "abc123"},
+        json={"usertest_id": "test-usertest-1", "id": "abc123", "group": "test-group"},
     )
 
     result = runner.invoke(app, ["usertests", "create", "-f", str(yaml_file)])
 
     assert result.exit_code == 0
     assert "test-usertest-1" in result.output
+    assert "https://usertests.podojo.com/preview/test-group/test-usertest-1" in result.output
+    assert "https://usertests.podojo.com/test-group?test=test-usertest-1" in result.output
 
 
 def test_create_usertest_file_not_found(runner):

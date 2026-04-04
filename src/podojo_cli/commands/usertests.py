@@ -206,10 +206,14 @@ def get_usertest(
         raise typer.Exit(1)
 
     # Remove server-managed fields for a clean editable output
+    group = usertest.pop("group", "")
     for key in ("id", "created_at", "created_by", "last_updated"):
         usertest.pop(key, None)
 
     console.print(yaml.dump(usertest, default_flow_style=False, sort_keys=False, allow_unicode=True))
+    if group:
+        console.print(f"Preview: https://usertests.podojo.com/preview/{group}/{usertest_id}")
+        console.print(f"Live:    https://usertests.podojo.com/{group}?test={usertest_id}")
 
 
 @app.command("create")
@@ -239,7 +243,12 @@ def create_usertest(
             console.print(f"[red]Error:[/red] {_format_api_error(e)}")
         raise typer.Exit(1)
 
-    console.print(f"[green]Created user test:[/green] {result.get('usertest_id', '')}")
+    usertest_id = result.get("usertest_id", "")
+    group = result.get("group", "")
+    console.print(f"[green]Created user test:[/green] {usertest_id}")
+    if group:
+        console.print(f"  Preview: https://usertests.podojo.com/preview/{group}/{usertest_id}")
+        console.print(f"  Live:    https://usertests.podojo.com/{group}?test={usertest_id}")
 
 
 @app.command("update")
