@@ -11,7 +11,7 @@ from ..client import PodojoClient
 app = typer.Typer(help="Manage unmoderated user tests")
 console = Console()
 
-REQUIRED_FIELDS = ["usertest_id", "client", "title", "logo", "prototype_url", "steps"]
+REQUIRED_FIELDS = ["usertest_id", "title", "logo", "prototype_url", "steps"]
 VALID_STEP_TYPES = {"screen", "prototype"}
 VALID_STEP_VARIANTS = {"question", "task"}
 REQUIRED_STEP_FIELDS = ["type", "title"]
@@ -19,11 +19,10 @@ REQUIRED_STEP_FIELDS = ["type", "title"]
 EXAMPLE_YAML = """\
 # Podojo Unmoderated User Test Configuration
 #
-# Required fields: usertest_id, client, title, logo, prototype_url, steps
+# Required fields: usertest_id, title, logo, prototype_url, steps
 # Optional fields: welcome_text, privacy_text, promo_code, promo_code_info, project_name
 
 usertest_id: checkout-usability-v1
-client: Acme Corp
 title: Checkout Flow Usability Test
 logo: https://example.com/logo.png
 prototype_url: https://figma.com/proto/abc123
@@ -174,7 +173,6 @@ def list_usertests(
     table = Table(title="User Tests")
     table.add_column("User Test ID")
     table.add_column("Title")
-    table.add_column("Client")
     table.add_column("Steps", justify="right")
     table.add_column("Live")
     table.add_column("Last Updated")
@@ -184,7 +182,6 @@ def list_usertests(
         table.add_row(
             s.get("usertest_id", ""),
             s.get("title", ""),
-            s.get("client", ""),
             str(s.get("step_count", "")),
             live,
             s.get("last_updated", ""),
