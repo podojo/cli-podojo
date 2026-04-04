@@ -5,6 +5,12 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.3.1] - 2026-04-04
+
+### Added
+- Auto-publish to PyPI on push to main
+- CHANGELOG.md for tracking version history
+
 ## [0.3.0] - 2026-04-01
 
 ### Changed
