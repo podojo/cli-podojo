@@ -24,8 +24,14 @@ def _verify_key(api_key: str) -> bool:
 
 
 @app.command("login")
-def login(api_key: str = typer.Argument(help="Your Podojo API key")):
+def login(
+    api_key: str = typer.Option(
+        None, "--key", "-k", help="Your Podojo API key (prompted if omitted)"
+    ),
+):
     """Save your API key and verify it works."""
+    if not api_key:
+        api_key = typer.prompt("API Key", hide_input=True)
     console.print("Verifying key…", end=" ")
     if not _verify_key(api_key):
         console.print("[red]failed[/red]")

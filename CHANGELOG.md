@@ -5,6 +5,12 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.4.0] - 2026-04-05
+
+### Changed
+- Store API key in OS credential store (Keychain/Credential Locker) via keyring instead of plaintext ~/.podojo.toml
+- `auth login` now prompts for key with hidden input instead of accepting it as a positional argument
+
 ## [0.3.2] - 2026-04-04
 
 ### Added
