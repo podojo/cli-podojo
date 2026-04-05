@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.4.2] - 2026-04-05
+
+### Changed
+- Enable attestations in publish workflow for verified PyPI details
+
 ## [0.4.1] - 2026-04-05
 
 ### Changed
