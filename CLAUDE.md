@@ -39,7 +39,7 @@ podojo usertests validate usertest.yaml # validate without creating
 
 User test configs are YAML files. Run `podojo usertests example` for the full template.
 Required fields: `usertest_id`, `client`, `title`, `logo`, `prototype_url`, `steps`.
-Each step needs `type` ("screen" or "prototype") and `title`. Screen steps should have `variant` ("question" or "task").
+Each step needs `type` ("screen" or "prototype") and `title`. Screen steps should have `variant` ("question", "task", or "instruction" — instruction screens render a "Continue" button instead of "Done with Step", useful as a briefing before a prototype step).
 
 ## Configuration
 

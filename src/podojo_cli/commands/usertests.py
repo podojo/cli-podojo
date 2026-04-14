@@ -13,7 +13,7 @@ console = Console()
 
 REQUIRED_FIELDS = ["usertest_id", "title", "logo", "prototype_url", "steps"]
 VALID_STEP_TYPES = {"screen", "prototype"}
-VALID_STEP_VARIANTS = {"question", "task", "intro", "feedback"}
+VALID_STEP_VARIANTS = {"question", "task", "intro", "feedback", "instruction"}
 REQUIRED_STEP_FIELDS = ["type", "title"]
 
 EXAMPLE_YAML = """\
@@ -53,7 +53,8 @@ project_name: checkout-redesign-q1
 
 # Steps define what participants see and do
 # Each step requires: type ("screen" or "prototype") and title
-# Screen steps should have a variant: "question" (open-ended) or "task" (action-based)
+# Screen steps should have a variant: "question" (open-ended), "task" (action-based),
+# or "instruction" (briefing screen shown before a prototype step — uses a "Continue" button)
 # Optional per step: text (markdown), image (URL)
 steps:
   - type: screen
@@ -63,6 +64,13 @@ steps:
       Look at this homepage screenshot.
       What stands out to you first?
     image: https://example.com/screenshots/homepage.png
+
+  - type: screen
+    variant: instruction
+    title: Next, you'll try the prototype
+    text: |
+      On the next screen you'll see a working prototype.
+      Try to buy a pair of running shoes, and think aloud as you go.
 
   - type: prototype
     title: Complete a Purchase
@@ -115,7 +123,7 @@ def validate_usertest_data(data: dict) -> list[str]:
                 variant = step.get("variant")
                 if step_type == "screen" and variant is not None and variant not in VALID_STEP_VARIANTS:
                     errors.append(
-                        f"Step {i}: 'variant' must be 'question' or 'task', got '{variant}'"
+                        f"Step {i}: 'variant' must be one of {sorted(VALID_STEP_VARIANTS)}, got '{variant}'"
                     )
     return errors
 
