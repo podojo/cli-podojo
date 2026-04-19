@@ -126,6 +126,7 @@ def test_create_usertest(runner, httpx_mock, tmp_path):
     assert "test-usertest-1" in result.output
     assert "https://usertests.podojo.com/preview/test-group/test-usertest-1" in result.output
     assert "https://usertests.podojo.com/test-group?test=test-usertest-1" in result.output
+    assert "podojo usertests snippet" in result.output
 
 
 def test_create_usertest_file_not_found(runner):
@@ -280,3 +281,11 @@ def test_example(runner):
     assert "steps:" in result.output
     assert "prototype" in result.output
     assert "screen" in result.output
+
+
+def test_snippet(runner):
+    result = runner.invoke(app, ["usertests", "snippet"])
+
+    assert result.exit_code == 0
+    assert "player.js" in result.output
+    assert "rrweb.record" in result.output

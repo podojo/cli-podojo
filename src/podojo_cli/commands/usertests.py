@@ -16,6 +16,22 @@ VALID_STEP_TYPES = {"screen", "prototype"}
 VALID_STEP_VARIANTS = {"question", "task", "intro", "feedback", "instruction"}
 REQUIRED_STEP_FIELDS = ["type", "title"]
 
+RECORDER_SNIPPET = """\
+<script src="https://usertests.podojo.com/player.js"></script>
+<script>
+  if (typeof rrweb === "undefined") {
+    console.error("[rrweb] failed to load — screen recording disabled");
+  } else {
+    rrweb.record({
+      emit(event) {
+        window.parent.postMessage({ type: "rrweb-event", event: event }, "*");
+      },
+      checkoutEveryNms: 30000,
+    });
+  }
+</script>
+"""
+
 EXAMPLE_YAML = """\
 # Podojo Unmoderated User Test Configuration
 #
@@ -257,6 +273,11 @@ def create_usertest(
     if group:
         console.print(f"  Preview: https://usertests.podojo.com/preview/{group}/{usertest_id}")
         console.print(f"  Live:    https://usertests.podojo.com/{group}?test={usertest_id}")
+    console.print(
+        "\n[dim]If your prototype is self-hosted, add the recorder script to its "
+        "[bold]<head>[/bold] to enable screen recording.\n"
+        "Run [bold]podojo usertests snippet[/bold] to print it.[/dim]"
+    )
 
 
 @app.command("update")
@@ -323,3 +344,9 @@ def validate(
 def example():
     """Print an example user test YAML template."""
     print(EXAMPLE_YAML)
+
+
+@app.command("snippet")
+def snippet():
+    """Print the recorder script to embed in self-hosted prototypes."""
+    print(RECORDER_SNIPPET)
