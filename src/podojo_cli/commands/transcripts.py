@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 import typer
@@ -10,6 +11,15 @@ app = typer.Typer(help="Manage transcripts")
 console = Console()
 
 
+def _format_date(value) -> str:
+    if not value:
+        return ""
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).strftime("%Y-%m-%d %H:%M")
+    except (ValueError, AttributeError):
+        return str(value)
+
+
 @app.command("list")
 def list_transcripts(project: str = typer.Argument(help="Project name")):
     """List transcripts for a project."""
@@ -17,11 +27,12 @@ def list_transcripts(project: str = typer.Argument(help="Project name")):
     data = client.list_transcripts(project)
 
     table = Table(title=f"Transcripts — {project} ({data['total']} total)")
+    table.add_column("Date")
     table.add_column("Batch ID")
     table.add_column("Name")
 
     for t in data["interviews"]:
-        table.add_row(t.get("batch_id", ""), t.get("batch_name", ""))
+        table.add_row(_format_date(t.get("date")), t.get("batch_id", ""), t.get("batch_name", ""))
 
     console.print(table)
 

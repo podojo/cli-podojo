@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.4.5] - 2026-04-25
+
+### Added
+- Show interview date/time in `transcripts list` and `videos list` tables
+
 ## [0.4.4] - 2026-04-19
 
 ### Added
