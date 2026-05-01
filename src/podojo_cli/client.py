@@ -1,3 +1,6 @@
+import urllib.parse
+from pathlib import Path
+
 import httpx
 
 from .config import load_config
@@ -20,6 +23,37 @@ class PodojoClient:
         )
         r.raise_for_status()
         return r.json()["projects"]
+
+    def create_project(self, name: str, brief: str = "") -> dict:
+        r = httpx.post(
+            f"{self.base_url}/projects",
+            json={"name": name, "brief": brief},
+            headers=self._headers(),
+        )
+        r.raise_for_status()
+        return r.json()
+
+    def upload_interview(
+        self,
+        project: str,
+        file_path: Path,
+        audio_only: bool = False,
+        batch_name: str | None = None,
+    ) -> dict:
+        encoded = urllib.parse.quote(project, safe="")
+        data = {"audio_only": str(audio_only).lower()}
+        if batch_name:
+            data["batch_name"] = batch_name
+        with file_path.open("rb") as f:
+            r = httpx.post(
+                f"{self.base_url}/projects/{encoded}/interviews",
+                files={"file": (file_path.name, f)},
+                data=data,
+                headers=self._headers(),
+                timeout=httpx.Timeout(None),
+            )
+        r.raise_for_status()
+        return r.json()
 
     def list_transcripts(self, project: str) -> dict:
         r = httpx.get(
