@@ -1,12 +1,19 @@
 import typer
 
 from .commands import auth, gdrive, interviews, projects, showreel, transcripts, usertests, videos
+from .version_check import check_for_update
 
 app = typer.Typer(
     name="podojo",
     help="CLI for the Podojo user research platform",
     no_args_is_help=True,
 )
+
+
+@app.callback()
+def root() -> None:
+    check_for_update()
+
 
 app.add_typer(auth.app, name="auth")
 app.add_typer(projects.app, name="projects")

@@ -43,3 +43,8 @@ def mock_config(monkeypatch):
     monkeypatch.setenv("PODOJO_BASE_URL", "http://test.local")
     monkeypatch.setenv("PODOJO_API_KEY", "test-key")
     monkeypatch.setattr("podojo_cli.config.CONFIG_PATH", Path("/nonexistent/.podojo.toml"))
+
+
+@pytest.fixture(autouse=True)
+def disable_version_check(monkeypatch):
+    monkeypatch.setattr("podojo_cli.main.check_for_update", lambda: None)
