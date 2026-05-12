@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.7.0] - 2026-05-12
+
+### Added
+- Experimental `synth` command group drives a Playwright-controlled browser through a usertest preview, so an agent (e.g. Claude Code) can play a synthetic participant. Install with `pip install 'podojo-cli[synth]'` and run `playwright install chromium`.
+
 ## [0.6.0] - 2026-05-05
 
 ### Added

@@ -41,6 +41,33 @@ User test configs are YAML files. Run `podojo usertests example` for the full te
 Required fields: `usertest_id`, `client`, `title`, `logo`, `prototype_url`, `steps`.
 Each step needs `type` ("screen" or "prototype") and `title`. Screen steps should have `variant` ("question", "task", or "instruction" — instruction screens render a "Continue" button instead of "Done with Step", useful as a briefing before a prototype step).
 
+## Synthetic User Tests (experimental)
+
+The `synth` command group drives a Playwright-controlled browser through a usertest
+preview so an agent (typically Claude Code) can act as a synthetic participant.
+It's an experimental, optional extra:
+
+```bash
+pip install 'podojo-cli[synth]'
+playwright install chromium
+```
+
+```bash
+podojo synth start <usertest_id|preview-url> [--headed]
+podojo synth state
+podojo synth click "Get Started"
+podojo synth click-role button "Submit"
+podojo synth fill "textarea" "..."
+podojo synth press Enter
+podojo synth advance 1        # auto-click "Done with Step" / "Continue"
+podojo synth stop
+```
+
+Each action prints the new page state (URL, title, buttons, links, inputs, body text)
+plus the path to a fresh full-page screenshot. The agent reads the screenshot and
+decides the next action. State lives in `~/.podojo/synth/`; v1 supports one session
+at a time. No LLM is bundled with the CLI — the calling agent provides the reasoning.
+
 ## Configuration
 
 Set via env vars or `~/.podojo.toml`:

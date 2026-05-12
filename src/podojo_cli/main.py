@@ -1,6 +1,16 @@
 import typer
 
-from .commands import auth, gdrive, interviews, projects, showreel, transcripts, usertests, videos
+from .commands import (
+    auth,
+    gdrive,
+    interviews,
+    projects,
+    showreel,
+    synth,
+    transcripts,
+    usertests,
+    videos,
+)
 from .version_check import check_for_update
 
 app = typer.Typer(
@@ -19,6 +29,7 @@ app.add_typer(auth.app, name="auth")
 app.add_typer(projects.app, name="projects")
 app.add_typer(interviews.app, name="interviews")
 app.add_typer(usertests.app, name="usertests")
+app.add_typer(synth.app, name="synth")
 app.add_typer(transcripts.app, name="transcripts")
 app.add_typer(videos.app, name="videos")
 app.add_typer(showreel.app, name="showreel")

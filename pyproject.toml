@@ -1,6 +1,6 @@
 [project]
 name = "podojo-cli"
-version = "0.6.0"
+version = "0.7.0"
 description = "CLI for the Podojo user research platform"
 readme = "README.md"
 license = "MIT"
@@ -15,6 +15,9 @@ dependencies = [
     "google-api-python-client>=2.0",
     "keyring>=25.0",
 ]
+
+[project.optional-dependencies]
+synth = ["playwright>=1.40"]
 
 [project.urls]
 Homepage = "https://github.com/podojo/cli-podojo"
