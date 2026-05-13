@@ -5,6 +5,12 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.8.0] - 2026-05-13
+
+### Added
+- `projects upload-doc` attaches a markdown research brief or final report to a project (`--type brief|final`). Enforces a `.md` extension and UTF-8 content.
+- `projects get-doc` downloads a project document (`--type brief|agent|final`) to stdout or a file.
+
 ## [0.7.0] - 2026-05-12
 
 ### Added
