@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import httpx
@@ -17,6 +18,33 @@ CLI_TO_API_DOC_TYPE = {
 }
 UPLOADABLE_DOC_TYPES = {"brief", "final"}
 MARKDOWN_SUFFIXES = {".md", ".markdown"}
+
+# Reference-style image definition with a data: URL — `[label]: <data:image/png;base64,...>`
+# These pack base64-encoded images into a single line and dominate file size.
+DATA_URI_REF_DEF_RE = re.compile(
+    r"^\s*\[[^\]\n]+\]:\s+<?data:[^\n>]*>?[^\n]*\n?",
+    re.MULTILINE,
+)
+INLINE_IMG_RE = re.compile(r"!\[[^\]]*\]\([^)]*\)")
+REF_IMG_RE = re.compile(r"!\[[^\]]*\]\[[^\]]*\]")
+HTML_IMG_RE = re.compile(r"<img\b[^>]*/?>", re.IGNORECASE)
+
+
+def strip_images(text: str) -> tuple[str, int]:
+    """Remove image markdown and HTML img tags. Returns (cleaned_text, count_removed)."""
+    count = 0
+    for pattern in (DATA_URI_REF_DEF_RE, INLINE_IMG_RE, REF_IMG_RE, HTML_IMG_RE):
+        text, n = pattern.subn("", text)
+        count += n
+    return text, count
+
+
+def _human_size(n: int) -> str:
+    if n >= 1024 * 1024:
+        return f"{n / 1024 / 1024:.1f} MB"
+    if n >= 1024:
+        return f"{n / 1024:.1f} KB"
+    return f"{n} B"
 
 
 @app.command("list")
@@ -85,6 +113,15 @@ def upload_doc(
     except UnicodeDecodeError:
         console.print(f"[red]Error:[/red] File is not valid UTF-8 text: {file}")
         raise typer.Exit(1)
+
+    original_size = len(content.encode("utf-8"))
+    content, image_count = strip_images(content)
+    new_size = len(content.encode("utf-8"))
+    if image_count:
+        console.print(
+            f"Stripped [bold]{image_count}[/bold] image(s) "
+            f"({_human_size(original_size)} → {_human_size(new_size)})"
+        )
 
     api_type = CLI_TO_API_DOC_TYPE[doc_type]
     client = PodojoClient()

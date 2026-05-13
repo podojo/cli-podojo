@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.8.1] - 2026-05-13
+
+### Changed
+- `projects upload-doc` strips embedded images (base64 reference definitions, inline `![](...)`, reference-style `![][ref]`, and `<img>` tags) before upload. Google-Docs-exported markdown often inlines images as multi-MB base64 blobs; the CLI now prints the count and size reduction.
+
 ## [0.8.0] - 2026-05-13
 
 ### Added
