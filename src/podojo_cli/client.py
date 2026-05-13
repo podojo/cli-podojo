@@ -55,6 +55,25 @@ class PodojoClient:
         r.raise_for_status()
         return r.json()
 
+    def upload_project_document(self, project: str, doc_type: str, content: str) -> dict:
+        encoded = urllib.parse.quote(project, safe="")
+        r = httpx.put(
+            f"{self.base_url}/projects/{encoded}/documents/{doc_type}",
+            json={"content": content},
+            headers=self._headers(),
+        )
+        r.raise_for_status()
+        return r.json()
+
+    def get_project_document(self, project: str, doc_type: str) -> dict:
+        encoded = urllib.parse.quote(project, safe="")
+        r = httpx.get(
+            f"{self.base_url}/projects/{encoded}/documents/{doc_type}",
+            headers=self._headers(),
+        )
+        r.raise_for_status()
+        return r.json()
+
     def list_transcripts(self, project: str) -> dict:
         r = httpx.get(
             f"{self.base_url}/projects/{project}/transcripts",
