@@ -20,6 +20,16 @@ def _format_date(value) -> str:
         return str(value)
 
 
+_QUALITY_COLORS = {"good": "green", "review": "yellow", "exclude": "red"}
+
+
+def _format_quality(value) -> str:
+    if not value:
+        return ""
+    color = _QUALITY_COLORS.get(value, "white")
+    return f"[{color}]{value}[/{color}]"
+
+
 @app.command("list")
 def list_transcripts(project: str = typer.Argument(help="Project name")):
     """List transcripts for a project."""
@@ -30,9 +40,15 @@ def list_transcripts(project: str = typer.Argument(help="Project name")):
     table.add_column("Date")
     table.add_column("Batch ID")
     table.add_column("Name")
+    table.add_column("Quality")
 
     for t in data["interviews"]:
-        table.add_row(_format_date(t.get("date")), t.get("batch_id", ""), t.get("batch_name", ""))
+        table.add_row(
+            _format_date(t.get("date")),
+            t.get("batch_id", ""),
+            t.get("batch_name", ""),
+            _format_quality(t.get("quality_label")),
+        )
 
     console.print(table)
 

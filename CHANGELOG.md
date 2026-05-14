@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org).
 
 ### Added
 - `interviews label <batch_id> --quality <good|review|exclude>` to set a quality indicator on an interview.
+- Quality column in `transcripts list` showing each interview's quality label.
 
 ## [0.9.0] - 2026-05-14
 
