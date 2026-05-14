@@ -84,3 +84,45 @@ def test_upload_interview_missing_file(runner, tmp_path):
     result = runner.invoke(app, ["interviews", "upload", str(missing), "--project", "Alpha"])
 
     assert result.exit_code != 0
+
+
+def test_label_interview(runner, httpx_mock):
+    httpx_mock.add_response(
+        method="PUT",
+        url="http://test.local/api/v1/interviews/batch-xyz/quality",
+        json={
+            "batch_id": "batch-xyz",
+            "quality_label": "review",
+            "message": "Quality label saved",
+        },
+    )
+
+    result = runner.invoke(
+        app, ["interviews", "label", "batch-xyz", "--quality", "review"]
+    )
+
+    assert result.exit_code == 0
+    assert "batch-xyz" in result.output
+    assert "review" in result.output
+
+
+def test_label_interview_not_found(runner, httpx_mock):
+    httpx_mock.add_response(
+        method="PUT",
+        url="http://test.local/api/v1/interviews/ghost/quality",
+        status_code=404,
+        json={"detail": "Interview not found"},
+    )
+
+    result = runner.invoke(app, ["interviews", "label", "ghost", "--quality", "good"])
+
+    assert result.exit_code == 1
+    assert "not found" in result.output
+
+
+def test_label_interview_invalid_quality(runner):
+    result = runner.invoke(
+        app, ["interviews", "label", "batch-xyz", "--quality", "bogus"]
+    )
+
+    assert result.exit_code != 0

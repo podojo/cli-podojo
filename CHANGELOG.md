@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.10.0] - 2026-05-14
+
+### Added
+- `interviews label <batch_id> --quality <good|review|exclude>` to set a quality indicator on an interview.
+
 ## [0.9.0] - 2026-05-14
 
 ### Removed

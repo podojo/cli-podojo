@@ -74,6 +74,15 @@ class PodojoClient:
         r.raise_for_status()
         return r.json()
 
+    def set_interview_quality(self, batch_id: str, label: str) -> dict:
+        r = httpx.put(
+            f"{self.base_url}/interviews/{batch_id}/quality",
+            json={"label": label},
+            headers=self._headers(),
+        )
+        r.raise_for_status()
+        return r.json()
+
     def list_transcripts(self, project: str) -> dict:
         r = httpx.get(
             f"{self.base_url}/projects/{project}/transcripts",

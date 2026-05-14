@@ -1,3 +1,4 @@
+from enum import Enum
 from pathlib import Path
 
 import httpx
@@ -8,6 +9,12 @@ from ..client import PodojoClient
 
 app = typer.Typer(help="Manage interviews")
 console = Console()
+
+
+class QualityLabel(str, Enum):
+    good = "good"
+    review = "review"
+    exclude = "exclude"
 
 
 @app.command("upload")
@@ -55,3 +62,31 @@ def upload_interview(
         f"Uploaded [bold]{file.name}[/bold] → {project} "
         f"(batch_id={result['batch_id']})"
     )
+
+
+@app.command("label")
+def label_interview(
+    batch_id: str = typer.Argument(..., help="Interview batch_id"),
+    quality: QualityLabel = typer.Option(
+        ..., "--quality", "-q", help="Quality label", case_sensitive=False
+    ),
+):
+    """Set a quality label on an interview."""
+    client = PodojoClient()
+    try:
+        client.set_interview_quality(batch_id, quality.value)
+    except httpx.HTTPStatusError as e:
+        status = e.response.status_code
+        try:
+            detail = e.response.json().get("detail", "")
+        except Exception:
+            detail = e.response.text
+        if status == 404:
+            console.print(f"[red]Interview '{batch_id}' not found.[/red]")
+        elif status == 400:
+            console.print(f"[red]{detail}[/red]")
+        else:
+            console.print(f"[red]{status}: {detail}[/red]")
+        raise typer.Exit(code=1)
+
+    console.print(f"Labeled [bold]{batch_id}[/bold] → {quality.value}")
