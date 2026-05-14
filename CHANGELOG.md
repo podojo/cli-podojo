@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.8.3] - 2026-05-14
+
+### Changed
+- Expanded the README with a full command reference, authentication/config docs, and setup notes for the `showreel` and `synth` extras.
+
 ## [0.8.2] - 2026-05-14
 
 ### Changed
