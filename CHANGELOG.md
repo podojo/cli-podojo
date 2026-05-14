@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.8.2] - 2026-05-14
+
+### Changed
+- Enriched PyPI package metadata: added `keywords`, `classifiers`, author email, and a `Changelog` project URL.
+
 ## [0.8.1] - 2026-05-13
 
 ### Changed
