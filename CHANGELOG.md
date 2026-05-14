@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.9.0] - 2026-05-14
+
+### Removed
+- `gdrive` command group (upload/list). The Google Drive integration was unused; this also drops the `google-auth` and `google-api-python-client` dependencies.
+
 ## [0.8.3] - 2026-05-14
 
 ### Changed

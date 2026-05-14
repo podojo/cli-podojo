@@ -105,15 +105,6 @@ podojo synth advance
 podojo synth stop
 ```
 
-### Google Drive
-
-```bash
-podojo gdrive upload report.md --folder-id <id>
-podojo gdrive list --folder-id <id>
-```
-
-Requires a `credentials.json` service-account file in the current directory.
-
 ## Links
 
 - [Source & issues](https://github.com/podojo/cli-podojo)

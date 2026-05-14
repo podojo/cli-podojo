@@ -2,7 +2,6 @@ import typer
 
 from .commands import (
     auth,
-    gdrive,
     interviews,
     projects,
     showreel,
@@ -33,7 +32,6 @@ app.add_typer(synth.app, name="synth")
 app.add_typer(transcripts.app, name="transcripts")
 app.add_typer(videos.app, name="videos")
 app.add_typer(showreel.app, name="showreel")
-app.add_typer(gdrive.app, name="gdrive")
 
 if __name__ == "__main__":
     app()
