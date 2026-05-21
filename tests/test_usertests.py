@@ -129,6 +129,25 @@ def test_create_usertest(runner, httpx_mock, tmp_path):
     assert "podojo usertests snippet" in result.output
 
 
+def test_create_usertest_collect_contact(runner, httpx_mock, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(VALID_USERTEST_YAML + "collect_contact: true\n")
+
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/usertests",
+        method="POST",
+        json={"usertest_id": "test-usertest-1", "id": "abc123", "group": "test-group"},
+    )
+
+    result = runner.invoke(app, ["usertests", "create", "-f", str(yaml_file)])
+
+    assert result.exit_code == 0
+    request = httpx_mock.get_requests()[-1]
+    import json
+
+    assert json.loads(request.content)["collect_contact"] is True
+
+
 def test_create_usertest_file_not_found(runner):
     result = runner.invoke(app, ["usertests", "create", "-f", "/nonexistent/usertest.yaml"])
 

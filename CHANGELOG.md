@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.11.0] - 2026-05-21
+
+### Added
+- `collect_contact` field for usertests. Set `collect_contact: true` in a usertest YAML (`create` or `update`) to make the recording app show a name/email form on the final screen. Defaults to false.
+
 ## [0.10.0] - 2026-05-14
 
 ### Added

@@ -36,7 +36,8 @@ EXAMPLE_YAML = """\
 # Podojo Unmoderated User Test Configuration
 #
 # Required fields: usertest_id, title, logo, prototype_url, steps
-# Optional fields: welcome_text, privacy_text, promo_code, promo_code_info, project_name
+# Optional fields: welcome_text, privacy_text, promo_code, promo_code_info,
+#                  project_name, live, collect_contact
 
 usertest_id: checkout-usability-v1
 title: Checkout Flow Usability Test
@@ -66,6 +67,9 @@ project_name: checkout-redesign-q1
 
 # Optional: set user test live (default: false)
 # live: true
+
+# Optional: collect participant name/email on the final screen (default: false)
+# collect_contact: true
 
 # Steps define what participants see and do
 # Each step requires: type ("screen" or "prototype") and title
