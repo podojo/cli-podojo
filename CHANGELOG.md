@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.0.2] - 2026-05-23
+
+### Added
+- `synth swipe-xy` and `synth frame-swipe-xy` for drag/swipe gestures (slide-to-confirm, dismissable cards, carousels). Backed by Playwright `mouse.move` → `mouse.down` → stepped `mouse.move` → `mouse.up`. `--steps` controls swipe speed. The frame variant translates iframe-local coords to page coords automatically.
+
 ## [1.0.1] - 2026-05-23
 
 ### Fixed
