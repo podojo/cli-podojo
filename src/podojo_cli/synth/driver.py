@@ -160,12 +160,10 @@ def _execute(page, cmd: dict) -> None:
         target = next((f for f in page.frames if f != page.main_frame), None)
         if target is None:
             raise RuntimeError("no prototype iframe found")
-        target.evaluate(
-            f"""
-            const e = document.elementFromPoint({cmd['x']}, {cmd['y']});
-            if (e) e.click();
-            """
-        )
+        box = target.frame_element().bounding_box()
+        if box is None:
+            raise RuntimeError("prototype iframe has no bounding box")
+        page.mouse.click(box["x"] + cmd["x"], box["y"] + cmd["y"])
     elif op == "advance":
         for _ in range(cmd.get("times", 1)):
             clicked = False
