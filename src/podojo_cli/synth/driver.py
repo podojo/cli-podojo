@@ -134,6 +134,12 @@ def _execute(page, cmd: dict) -> None:
         page.click(cmd["selector"])
     elif op == "click_xy":
         page.mouse.click(cmd["x"], cmd["y"])
+    elif op == "swipe_xy":
+        steps = cmd.get("steps", 20)
+        page.mouse.move(cmd["x1"], cmd["y1"])
+        page.mouse.down()
+        page.mouse.move(cmd["x2"], cmd["y2"], steps=steps)
+        page.mouse.up()
     elif op == "fill":
         page.fill(cmd["selector"], cmd["value"])
     elif op == "fill_role":
@@ -164,6 +170,20 @@ def _execute(page, cmd: dict) -> None:
         if box is None:
             raise RuntimeError("prototype iframe has no bounding box")
         page.mouse.click(box["x"] + cmd["x"], box["y"] + cmd["y"])
+    elif op == "frame_swipe_xy":
+        target = next((f for f in page.frames if f != page.main_frame), None)
+        if target is None:
+            raise RuntimeError("no prototype iframe found")
+        box = target.frame_element().bounding_box()
+        if box is None:
+            raise RuntimeError("prototype iframe has no bounding box")
+        steps = cmd.get("steps", 20)
+        x1, y1 = box["x"] + cmd["x1"], box["y"] + cmd["y1"]
+        x2, y2 = box["x"] + cmd["x2"], box["y"] + cmd["y2"]
+        page.mouse.move(x1, y1)
+        page.mouse.down()
+        page.mouse.move(x2, y2, steps=steps)
+        page.mouse.up()
     elif op == "advance":
         for _ in range(cmd.get("times", 1)):
             clicked = False

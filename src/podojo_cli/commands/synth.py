@@ -230,6 +230,30 @@ def frame_click_xy(
     _send({"op": "frame_click_xy", "x": x, "y": y})
 
 
+@app.command("swipe-xy")
+def swipe_xy(
+    x1: int = typer.Argument(help="start x"),
+    y1: int = typer.Argument(help="start y"),
+    x2: int = typer.Argument(help="end x"),
+    y2: int = typer.Argument(help="end y"),
+    steps: int = typer.Option(20, help="intermediate mousemove steps; higher = slower swipe"),
+):
+    """Drag from (x1,y1) to (x2,y2) on the page (use for slide-to-confirm)."""
+    _send({"op": "swipe_xy", "x1": x1, "y1": y1, "x2": x2, "y2": y2, "steps": steps})
+
+
+@app.command("frame-swipe-xy")
+def frame_swipe_xy(
+    x1: int = typer.Argument(help="start x inside the prototype iframe"),
+    y1: int = typer.Argument(help="start y inside the prototype iframe"),
+    x2: int = typer.Argument(help="end x inside the prototype iframe"),
+    y2: int = typer.Argument(help="end y inside the prototype iframe"),
+    steps: int = typer.Option(20, help="intermediate mousemove steps; higher = slower swipe"),
+):
+    """Drag from (x1,y1) to (x2,y2) inside the first non-main iframe."""
+    _send({"op": "frame_swipe_xy", "x1": x1, "y1": y1, "x2": x2, "y2": y2, "steps": steps})
+
+
 @app.command("fill")
 def fill(
     selector: str = typer.Argument(help="CSS selector of the input"),
