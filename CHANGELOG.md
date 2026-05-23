@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.0.1] - 2026-05-23
+
+### Fixed
+- `synth frame_click_xy` now works on SVG elements (e.g. map icons, inline-SVG buttons). Uses real mouse events at the iframe offset instead of `elementFromPoint(...).click()`, which threw `e.click is not a function` on non-HTMLElement targets and didn't dispatch `mousedown`/`mouseup` for pointer-event listeners.
+
 ## [1.0.0] - 2026-05-21
 
 ### Changed
