@@ -1,6 +1,6 @@
 [project]
 name = "podojo-cli"
-version = "1.1.0"
+version = "1.1.1"
 description = "CLI for the Podojo user research platform"
 readme = "README.md"
 license = "MIT"
@@ -8,7 +8,7 @@ requires-python = ">=3.12"
 authors = [{ name = "Jochen Ade", email = "jochen.ade@podojo.com" }]
 keywords = ["podojo", "ux-research", "user-research", "cli", "transcripts"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: End Users/Desktop",
     "Intended Audience :: Other Audience",
