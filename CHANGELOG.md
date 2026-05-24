@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.1.0] - 2026-05-24
+
+### Added
+- `projects upload-doc --type agent` to upload an agent report markdown file to a project. Previously only the `brief` and `final` document types were uploadable via the CLI.
+
 ## [1.0.2] - 2026-05-23
 
 ### Added

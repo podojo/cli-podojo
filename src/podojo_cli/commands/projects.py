@@ -16,7 +16,7 @@ CLI_TO_API_DOC_TYPE = {
     "agent": "agent_report",
     "final": "final_report",
 }
-UPLOADABLE_DOC_TYPES = {"brief", "final"}
+UPLOADABLE_DOC_TYPES = {"brief", "agent", "final"}
 MARKDOWN_SUFFIXES = {".md", ".markdown"}
 
 # Reference-style image definition with a data: URL — `[label]: <data:image/png;base64,...>`
@@ -96,10 +96,10 @@ def upload_doc(
     ),
     doc_type: str = typer.Option(
         ..., "--type", "-t",
-        help="Document type: 'brief' (research brief) or 'final' (final report)",
+        help="Document type: 'brief' (research brief), 'agent' (agent report), or 'final' (final report)",
     ),
 ):
-    """Upload a research brief or final report markdown file to a project."""
+    """Upload a research brief, agent report, or final report markdown file to a project."""
     if doc_type not in UPLOADABLE_DOC_TYPES:
         console.print(f"[red]Error:[/red] --type must be one of: {', '.join(sorted(UPLOADABLE_DOC_TYPES))}")
         raise typer.Exit(1)

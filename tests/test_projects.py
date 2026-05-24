@@ -145,3 +145,20 @@ def test_upload_doc_no_images_no_strip_message(runner, tmp_path, httpx_mock):
 
     assert result.exit_code == 0
     assert "Stripped" not in result.output
+
+
+def test_upload_doc_agent_report(runner, tmp_path, httpx_mock):
+    file = tmp_path / "agent.md"
+    file.write_text("# Agent Report\n\nFindings.\n", encoding="utf-8")
+
+    httpx_mock.add_response(
+        method="PUT",
+        url="http://test.local/api/v1/projects/Alpha/documents/agent_report",
+        match_json={"content": "# Agent Report\n\nFindings.\n"},
+        json={"ok": True},
+    )
+
+    result = runner.invoke(app, ["projects", "upload-doc", "Alpha", str(file), "--type", "agent"])
+
+    assert result.exit_code == 0
+    assert "Uploaded" in result.output

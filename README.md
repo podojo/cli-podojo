@@ -55,8 +55,8 @@ podojo projects upload-doc "Checkout Redesign" brief.md --type brief
 podojo projects get-doc "Checkout Redesign" --type final -o final-report.md
 ```
 
-`upload-doc` accepts `brief` and `final` document types; `get-doc` also supports
-`agent`. Embedded images are stripped from markdown before upload.
+`upload-doc` and `get-doc` accept `brief`, `agent`, and `final` document types.
+Embedded images are stripped from markdown before upload.
 
 ### Interviews & transcripts
 
