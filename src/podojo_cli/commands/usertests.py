@@ -36,7 +36,7 @@ EXAMPLE_YAML = """\
 # Podojo Unmoderated User Test Configuration
 #
 # Required fields: usertest_id, title, logo, prototype_url, steps
-# Optional fields: welcome_text, privacy_text, promo_code, promo_code_info,
+# Optional fields: welcome_text, promo_code, promo_code_info,
 #                  project_name, live, collect_contact
 
 usertest_id: checkout-usability-v1
@@ -52,11 +52,6 @@ welcome_text: |
   answers -- we want to understand your experience.
 
   This session takes about 10 minutes.
-
-# Optional: privacy notice
-privacy_text: |
-  Your responses are anonymous and will only be used to improve
-  our product. You can stop at any time.
 
 # Optional: reward for participants
 promo_code: THANKS10

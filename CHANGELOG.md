@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.3.0] - 2026-05-25
+
+### Removed
+- Drop `privacy_text` field from usertest config. It was never used in practice, and the participant frontend no longer renders it.
+
 ## [1.2.0] - 2026-05-25
 
 ### Removed
