@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.2.0] - 2026-05-25
+
+### Removed
+- Drop `intro` and `feedback` step variants. They had no rendering effect on the participant frontend. Use `instruction` (briefing before a prototype step) or `question` (open-ended response) instead. Existing stored values are not migrated and continue to render as default.
+
 ## [1.1.2] - 2026-05-24
 
 ### Changed
