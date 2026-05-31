@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.4.0] - 2026-05-31
+
+### Added
+- Support `image_file:` in usertest step config — a local image path that is uploaded to Podojo-hosted storage on `create`/`update` and replaced with the hosted URL. Relative paths resolve against the YAML file's location. Externally-hosted `image:` URLs continue to work.
+
 ## [1.3.0] - 2026-05-25
 
 ### Removed

@@ -70,7 +70,10 @@ project_name: checkout-redesign-q1
 # Each step requires: type ("screen" or "prototype") and title
 # Screen steps should have a variant: "question" (open-ended), "task" (action-based),
 # or "instruction" (briefing screen shown before a prototype step — uses a "Continue" button)
-# Optional per step: text (markdown), image (URL)
+# Optional per step: text (markdown), and either:
+#   image:      a URL to an externally-hosted image, or
+#   image_file: a path to a local image (uploaded to Podojo storage on create/update;
+#               relative paths resolve against this YAML file's location)
 steps:
   - type: screen
     variant: question
@@ -78,7 +81,7 @@ steps:
     text: |
       Look at this homepage screenshot.
       What stands out to you first?
-    image: https://example.com/screenshots/homepage.png
+    image_file: ./screenshots/homepage.png
 
   - type: screen
     variant: instruction
@@ -158,6 +161,35 @@ def _load_yaml(path: Path) -> dict:
         console.print("[red]Error:[/red] YAML file must contain a mapping (key-value pairs)")
         raise typer.Exit(1)
     return data
+
+
+def _resolve_image_files(data: dict, base_dir: Path, client: PodojoClient) -> None:
+    """Upload any step `image_file` (local path) and replace it with the hosted URL."""
+    steps = data.get("steps")
+    if not isinstance(steps, list):
+        return
+    for i, step in enumerate(steps, 1):
+        if not isinstance(step, dict) or "image_file" not in step:
+            continue
+        raw_path = step.pop("image_file")
+        if not raw_path:
+            continue
+        image_path = Path(raw_path)
+        if not image_path.is_absolute():
+            image_path = (base_dir / image_path).resolve()
+        if not image_path.exists():
+            console.print(f"[red]Error:[/red] Step {i}: image file not found: {image_path}")
+            raise typer.Exit(1)
+        try:
+            result = client.upload_usertest_image(image_path)
+        except ValueError as ve:
+            console.print(f"[red]Error:[/red] Step {i}: {ve}")
+            raise typer.Exit(1)
+        except httpx.HTTPStatusError as he:
+            console.print(f"[red]Error:[/red] Step {i}: image upload failed: {_format_api_error(he)}")
+            raise typer.Exit(1)
+        step["image"] = result["url"]
+        console.print(f"[dim]Uploaded image for step {i}: {result['url']}[/dim]")
 
 
 def _format_api_error(e: httpx.HTTPStatusError) -> str:
@@ -257,6 +289,7 @@ def create_usertest(
         data["project_name"] = data["usertest_id"]
 
     client = PodojoClient()
+    _resolve_image_files(data, from_file.parent, client)
     try:
         result = client.create_usertest(data)
     except httpx.HTTPStatusError as e:
@@ -288,6 +321,7 @@ def update_usertest(
     data = _load_yaml(from_file)
 
     client = PodojoClient()
+    _resolve_image_files(data, from_file.parent, client)
     try:
         result = client.update_usertest(usertest_id, data)
     except httpx.HTTPStatusError as e:
