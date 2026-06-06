@@ -77,6 +77,4 @@ api_key = "your-api-key"
 
 ## Git Commits
 
-- Do NOT add "Co-Authored-By: Claude" trailers to commit messages
-- Keep commit messages concise and focused on the "why"
 - Commit directly to `main` — this is a solo project, no branching needed
