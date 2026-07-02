@@ -3,8 +3,9 @@
 Command-line tool for the [Podojo](https://podojo.com) user research platform.
 
 `podojo` lets UX researchers manage projects, upload and transcribe interviews,
-build unmoderated user tests, download research videos, cut showreels, and run
-synthetic test participants — all without leaving the terminal.
+build unmoderated user tests, run AI voice interviews, download research
+videos, cut showreels, and run synthetic test participants — all without
+leaving the terminal.
 
 ## Installation
 
@@ -90,6 +91,26 @@ podojo usertests update checkout-usability-v1 -f changes.yaml
 podojo usertests delete checkout-usability-v1
 podojo usertests snippet                  # recorder script for self-hosted prototypes
 ```
+
+### AI interviews
+
+An AI interview is a self-serve voice conversation: an AI interviewer asks
+your questions in order and adaptively follows up. One YAML file defines one
+study:
+
+```bash
+podojo aiinterviews example > my-interview.yaml   # print a template to start from
+podojo aiinterviews validate my-interview.yaml    # check it without creating
+podojo aiinterviews create -f my-interview.yaml
+podojo aiinterviews list
+podojo aiinterviews get checkout-experience-v1
+podojo aiinterviews update checkout-experience-v1 -f changes.yaml
+podojo aiinterviews delete checkout-experience-v1
+```
+
+`create` and `get` print the participant Preview and Live URLs. The frontend
+base URL can be overridden via `ai_interviews_url` in `~/.podojo.toml` or
+`PODOJO_AI_INTERVIEWS_URL`.
 
 ### Synthetic participants
 
