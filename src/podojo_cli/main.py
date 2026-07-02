@@ -1,6 +1,7 @@
 import typer
 
 from .commands import (
+    aiinterviews,
     auth,
     interviews,
     projects,
@@ -28,6 +29,7 @@ app.add_typer(auth.app, name="auth")
 app.add_typer(projects.app, name="projects")
 app.add_typer(interviews.app, name="interviews")
 app.add_typer(usertests.app, name="usertests")
+app.add_typer(aiinterviews.app, name="aiinterviews")
 app.add_typer(synth.app, name="synth")
 app.add_typer(transcripts.app, name="transcripts")
 app.add_typer(videos.app, name="videos")

@@ -8,6 +8,7 @@ KEYRING_SERVICE = "podojo-cli"
 KEYRING_USERNAME = "api_key"
 CONFIG_PATH = Path.home() / ".podojo.toml"
 DEFAULT_BASE_URL = "https://podojo-fastapi-mcp.onrender.com"
+DEFAULT_AI_INTERVIEWS_URL = "https://podojo-unmod-discover-frontend.onrender.com"
 
 
 def load_config() -> dict:
@@ -15,6 +16,9 @@ def load_config() -> dict:
     if CONFIG_PATH.exists():
         config = tomllib.loads(CONFIG_PATH.read_text())
     config.setdefault("base_url", os.getenv("PODOJO_BASE_URL", DEFAULT_BASE_URL))
+    config.setdefault(
+        "ai_interviews_url", os.getenv("PODOJO_AI_INTERVIEWS_URL", DEFAULT_AI_INTERVIEWS_URL)
+    )
     api_key = (
         os.getenv("PODOJO_API_KEY")
         or keyring.get_password(KEYRING_SERVICE, KEYRING_USERNAME)

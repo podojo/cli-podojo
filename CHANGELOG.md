@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.5.0] - 2026-07-02
+
+### Added
+- New `aiinterviews` command group to manage AI interview (voice-interviewer) study configs: `example`, `validate`, `create`, `get`, `update`, `delete`, and `list`. Participant Preview/Live URLs are built from the new `ai_interviews_url` config value (`~/.podojo.toml` key `ai_interviews_url`, env `PODOJO_AI_INTERVIEWS_URL`, or the default frontend URL).
+
 ## [1.4.0] - 2026-05-31
 
 ### Added

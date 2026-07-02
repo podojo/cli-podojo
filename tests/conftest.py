@@ -41,6 +41,7 @@ def mock_keyring():
 @pytest.fixture(autouse=True)
 def mock_config(monkeypatch):
     monkeypatch.setenv("PODOJO_BASE_URL", "http://test.local")
+    monkeypatch.setenv("PODOJO_AI_INTERVIEWS_URL", "http://interviews.test.local")
     monkeypatch.setenv("PODOJO_API_KEY", "test-key")
     monkeypatch.setattr("podojo_cli.config.CONFIG_PATH", Path("/nonexistent/.podojo.toml"))
 

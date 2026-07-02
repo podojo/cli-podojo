@@ -181,3 +181,46 @@ class PodojoClient:
         )
         r.raise_for_status()
         return r.json()
+
+    def list_ai_interviews(self, skip: int = 0, limit: int = 50) -> dict:
+        r = httpx.get(
+            f"{self.base_url}/ai-interviews",
+            params={"skip": skip, "limit": limit},
+            headers=self._headers(),
+        )
+        r.raise_for_status()
+        return r.json()
+
+    def get_ai_interview(self, interview_id: str) -> dict:
+        r = httpx.get(
+            f"{self.base_url}/ai-interviews/{interview_id}",
+            headers=self._headers(),
+        )
+        r.raise_for_status()
+        return r.json()
+
+    def create_ai_interview(self, data: dict) -> dict:
+        r = httpx.post(
+            f"{self.base_url}/ai-interviews",
+            json=data,
+            headers=self._headers(),
+        )
+        r.raise_for_status()
+        return r.json()
+
+    def update_ai_interview(self, interview_id: str, data: dict) -> dict:
+        r = httpx.put(
+            f"{self.base_url}/ai-interviews/{interview_id}",
+            json=data,
+            headers=self._headers(),
+        )
+        r.raise_for_status()
+        return r.json()
+
+    def delete_ai_interview(self, interview_id: str) -> dict:
+        r = httpx.delete(
+            f"{self.base_url}/ai-interviews/{interview_id}",
+            headers=self._headers(),
+        )
+        r.raise_for_status()
+        return r.json()
