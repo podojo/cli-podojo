@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.5.1] - 2026-07-02
+
+### Changed
+- Default AI interviews frontend URL is now `https://ai-interviews.podojo.com` (was the Render-hosted URL). Explicit `ai_interviews_url` / `PODOJO_AI_INTERVIEWS_URL` overrides are unaffected.
+
 ## [1.5.0] - 2026-07-02
 
 ### Added

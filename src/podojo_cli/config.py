@@ -8,7 +8,7 @@ KEYRING_SERVICE = "podojo-cli"
 KEYRING_USERNAME = "api_key"
 CONFIG_PATH = Path.home() / ".podojo.toml"
 DEFAULT_BASE_URL = "https://podojo-fastapi-mcp.onrender.com"
-DEFAULT_AI_INTERVIEWS_URL = "https://podojo-unmod-discover-frontend.onrender.com"
+DEFAULT_AI_INTERVIEWS_URL = "https://ai-interviews.podojo.com"
 
 
 def load_config() -> dict:
