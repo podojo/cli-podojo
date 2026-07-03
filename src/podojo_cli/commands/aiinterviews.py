@@ -24,13 +24,21 @@ EXAMPLE_YAML = """\
 #
 # Required fields: interview_id, title, questions, closing_message
 # Optional fields: language (default en-US), project_name, overview,
-#                  decision, live
+#                  decision, screening_questions, rejection_message, live
 #
 # Each question:
 #   text            (required) the main question, asked verbatim-ish in order
 #   section         (optional) researcher-facing grouping label
 #   max_follow_ups  (optional, default 2) adaptive follow-up budget
 #   probe_for       (optional) what a concrete answer must cover — drives follow-ups
+#
+# Each screening question (optional participant screener, answered on screen
+# before the voice interview starts):
+#   text            (required) single-select multiple-choice question
+#   options         (required, at least 2) each with `text` and an optional
+#                   `qualifies: true` — participants must pick a qualifying
+#                   option on every question, otherwise they see the
+#                   rejection_message and the interview never starts
 
 interview_id: checkout-experience-v1
 title: Checkout Experience Research
@@ -56,6 +64,30 @@ decision: >
 
 # Optional: set interview live (default: false)
 # live: true
+
+# Optional: participant screener — shown on screen (no audio) before the
+# conversation. Answers are captured alongside the session's recording.
+screening_questions:
+  - text: How often do you shop online?
+    options:
+      - text: Rarely or never
+      - text: A few times a year
+      - text: At least once a month
+        qualifies: true
+      - text: Weekly or more
+        qualifies: true
+
+  - text: Have you abandoned an online purchase at checkout in the past 3 months?
+    options:
+      - text: "Yes"
+        qualifies: true
+      - text: "No"
+      - text: Not sure
+
+# Optional: shown to participants whose screener answers don't qualify
+rejection_message: >
+  Thank you for your time, you did not meet the research criteria for this
+  study!
 
 questions:
   - section: Shopping Habits
@@ -117,6 +149,38 @@ def validate_ai_interview_data(data: dict) -> list[str]:
                 ):
                     errors.append(
                         f"Question {i}: 'max_follow_ups' must be an integer >= 0, got '{max_follow_ups}'"
+                    )
+
+    screening_questions = data.get("screening_questions")
+    if screening_questions is not None:
+        if not isinstance(screening_questions, list):
+            errors.append("'screening_questions' must be a list")
+        else:
+            for i, question in enumerate(screening_questions, 1):
+                if not isinstance(question, dict) or "text" not in question:
+                    errors.append(f"Screening question {i}: must be a mapping with 'text'")
+                    continue
+                options = question.get("options")
+                if not isinstance(options, list) or len(options) < 2:
+                    errors.append(f"Screening question {i}: 'options' must list at least 2 options")
+                    continue
+                qualifying = 0
+                for j, option in enumerate(options, 1):
+                    if not isinstance(option, dict) or "text" not in option:
+                        errors.append(
+                            f"Screening question {i}, option {j}: must be a mapping with 'text'"
+                        )
+                        continue
+                    qualifies = option.get("qualifies", False)
+                    if not isinstance(qualifies, bool):
+                        errors.append(
+                            f"Screening question {i}, option {j}: 'qualifies' must be true or false"
+                        )
+                    elif qualifies:
+                        qualifying += 1
+                if qualifying == 0:
+                    errors.append(
+                        f"Screening question {i}: needs at least one option with 'qualifies: true'"
                     )
     return errors
 

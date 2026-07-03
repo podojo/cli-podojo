@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.6.0] - 2026-07-03
+
+### Added
+- AI interviews support an optional participant screener: `screening_questions` (single-select, options flagged `qualifies: true`) and `rejection_message`. `validate`/`create` check the screener shape, and `example` shows the new fields.
+
 ## [1.5.2] - 2026-07-02
 
 ### Changed

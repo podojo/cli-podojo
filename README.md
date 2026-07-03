@@ -112,6 +112,12 @@ podojo aiinterviews delete checkout-experience-v1
 base URL can be overridden via `ai_interviews_url` in `~/.podojo.toml` or
 `PODOJO_AI_INTERVIEWS_URL`.
 
+A study can open with an optional participant screener: on-screen single-select
+`screening_questions` whose options carry `qualifies: true` flags. Participants
+must pick a qualifying option on every question; everyone else sees the study's
+`rejection_message` and never reaches the voice interview. See
+`podojo aiinterviews example` for the exact shape.
+
 ### Synthetic participants
 
 The `synth` group drives a Playwright browser through a user test preview so an
