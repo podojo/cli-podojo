@@ -92,6 +92,12 @@ podojo usertests delete checkout-usability-v1
 podojo usertests snippet                  # recorder script for self-hosted prototypes
 ```
 
+A user test can open with an optional participant screener: on-screen
+single-select `screening_questions` whose options carry `qualifies: true`
+flags. Participants must pick a qualifying option on every question; everyone
+else sees the test's `rejection_message` and never reaches the recorded test.
+See `podojo usertests example` for the exact shape.
+
 ### AI interviews
 
 An AI interview is a self-serve voice conversation: an AI interviewer asks

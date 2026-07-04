@@ -292,6 +292,87 @@ def test_validate_invalid(runner, tmp_path):
     assert "Missing required field" in result.output
 
 
+SCREENING_YAML = VALID_USERTEST_YAML + """\
+screening_questions:
+  - text: Do you shop online?
+    options:
+      - text: "Yes"
+        qualifies: true
+      - text: "No"
+  - text: How often do you shop online?
+    options:
+      - text: Never
+      - text: Monthly
+        qualifies: true
+      - text: Weekly
+        qualifies: true
+rejection_message: You did not meet the research criteria for this study.
+"""
+
+
+def test_validate_with_screening(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(SCREENING_YAML)
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 0
+    assert "Valid user test config" in result.output
+
+
+def test_validate_screening_question_needs_two_options(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(
+        VALID_USERTEST_YAML
+        + "screening_questions:\n"
+        + "  - text: Only one way to answer?\n"
+        + "    options:\n"
+        + "      - text: \"Yes\"\n"
+        + "        qualifies: true\n"
+    )
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'options' must list at least 2 options" in result.output
+
+
+def test_validate_screening_question_needs_a_qualifying_option(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(
+        VALID_USERTEST_YAML
+        + "screening_questions:\n"
+        + "  - text: Nobody can pass this one\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "      - text: B\n"
+    )
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "needs at least one option with 'qualifies: true'" in result.output
+
+
+def test_validate_screening_option_qualifies_must_be_bool(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(
+        VALID_USERTEST_YAML
+        + "screening_questions:\n"
+        + "  - text: Q\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "        qualifies: yep\n"
+        + "      - text: B\n"
+        + "        qualifies: true\n"
+    )
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'qualifies' must be true or false" in result.output
+
+
 def test_example(runner):
     result = runner.invoke(app, ["usertests", "example"])
 
@@ -300,6 +381,20 @@ def test_example(runner):
     assert "steps:" in result.output
     assert "prototype" in result.output
     assert "screen" in result.output
+    assert "screening_questions:" in result.output
+    assert "rejection_message:" in result.output
+
+
+def test_example_validates(runner, tmp_path):
+    from podojo_cli.commands.usertests import EXAMPLE_YAML
+
+    yaml_file = tmp_path / "example.yaml"
+    yaml_file.write_text(EXAMPLE_YAML)
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 0
+    assert "Valid user test config" in result.output
 
 
 def test_snippet(runner):
