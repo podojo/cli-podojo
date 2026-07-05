@@ -5,6 +5,11 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.8.0] - 2026-07-05
+
+### Added
+- Screening questions (user tests and AI interviews) support `multi_select: true`: participants can pick several options, and any qualifying pick passes the question. `validate`/`create` check the flag, and `example` shows it.
+
 ## [1.7.0] - 2026-07-04
 
 ### Added

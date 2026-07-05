@@ -313,6 +313,7 @@ screening_questions:
         qualifies: true
       - text: "No"
   - text: How many rides did you complete last month?
+    multi_select: true
     options:
       - text: 0 rides
       - text: 1-10 rides
@@ -365,6 +366,25 @@ def test_validate_screening_question_needs_a_qualifying_option(runner, tmp_path)
 
     assert result.exit_code == 1
     assert "needs at least one option with 'qualifies: true'" in result.output
+
+
+def test_validate_screening_multi_select_must_be_bool(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        VALID_AI_INTERVIEW_YAML
+        + "screening_questions:\n"
+        + "  - text: Q\n"
+        + "    multi_select: yep\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "        qualifies: true\n"
+        + "      - text: B\n"
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'multi_select' must be true or false" in result.output
 
 
 def test_validate_screening_option_qualifies_must_be_bool(runner, tmp_path):

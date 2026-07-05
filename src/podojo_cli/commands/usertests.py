@@ -42,7 +42,9 @@ EXAMPLE_YAML = """\
 #
 # Each screening question (optional participant screener, answered on screen
 # before consent — screening is never recorded):
-#   text            (required) single-select multiple-choice question
+#   text            (required) multiple-choice question
+#   multi_select    (optional, default false) participants can pick several
+#                   options; one qualifying pick passes the question
 #   options         (required, at least 2) each with `text` and an optional
 #                   `qualifies: true` — participants must pick a qualifying
 #                   option on every question, otherwise they see the
@@ -94,6 +96,15 @@ screening_questions:
         qualifies: true
       - text: "No"
       - text: Not sure
+
+  - text: Which devices do you use to shop online?
+    multi_select: true
+    options:
+      - text: Phone
+        qualifies: true
+      - text: Laptop or desktop
+        qualifies: true
+      - text: I don't shop online
 
 # Optional: shown to participants whose screener answers don't qualify
 rejection_message: >
@@ -187,6 +198,11 @@ def validate_usertest_data(data: dict) -> list[str]:
                 if not isinstance(question, dict) or "text" not in question:
                     errors.append(f"Screening question {i}: must be a mapping with 'text'")
                     continue
+                multi_select = question.get("multi_select", False)
+                if not isinstance(multi_select, bool):
+                    errors.append(
+                        f"Screening question {i}: 'multi_select' must be true or false"
+                    )
                 options = question.get("options")
                 if not isinstance(options, list) or len(options) < 2:
                     errors.append(f"Screening question {i}: 'options' must list at least 2 options")
