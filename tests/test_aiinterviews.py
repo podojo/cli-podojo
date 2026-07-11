@@ -147,6 +147,30 @@ def test_create_ai_interview(runner, httpx_mock, tmp_path):
     assert "http://interviews.test.local/test-group/test-interview-1" in result.output
 
 
+def test_create_ai_interview_collect_contact(runner, httpx_mock, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(VALID_AI_INTERVIEW_YAML + "collect_contact: true\n")
+
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/ai-interviews",
+        method="POST",
+        json={
+            "id": "abc123",
+            "interview_id": "test-interview-1",
+            "title": "Test AI Interview",
+            "group": "test-group",
+        },
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "create", "-f", str(yaml_file)])
+
+    assert result.exit_code == 0
+    request = httpx_mock.get_requests()[-1]
+    import json
+
+    assert json.loads(request.content)["collect_contact"] is True
+
+
 def test_create_ai_interview_file_not_found(runner):
     result = runner.invoke(app, ["aiinterviews", "create", "-f", "/nonexistent/interview.yaml"])
 

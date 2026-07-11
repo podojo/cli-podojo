@@ -24,7 +24,8 @@ EXAMPLE_YAML = """\
 #
 # Required fields: interview_id, title, questions, closing_message
 # Optional fields: language (default en-US), project_name, overview,
-#                  decision, screening_questions, rejection_message, live
+#                  decision, screening_questions, rejection_message, live,
+#                  collect_contact
 #
 # Each question:
 #   text            (required) the main question, asked verbatim-ish in order
@@ -66,6 +67,10 @@ decision: >
 
 # Optional: set interview live (default: false)
 # live: true
+
+# Optional: collect participant name/email on a dedicated screen after the
+# interview (default: false)
+# collect_contact: true
 
 # Optional: participant screener — shown on screen (no audio) before the
 # conversation. Answers are captured alongside the session's recording.
