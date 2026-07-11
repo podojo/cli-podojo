@@ -5,6 +5,12 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.9.0] - 2026-07-11
+
+### Changed
+- `logo` is now optional for user tests: the test app falls back to the account's
+  logo (per-group mapping). Set it only to override the logo for a single test.
+
 ## [1.8.0] - 2026-07-05
 
 ### Added

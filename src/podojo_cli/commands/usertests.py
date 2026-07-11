@@ -11,7 +11,7 @@ from ..client import PodojoClient
 app = typer.Typer(help="Manage unmoderated user tests")
 console = Console()
 
-REQUIRED_FIELDS = ["usertest_id", "title", "logo", "prototype_url", "steps"]
+REQUIRED_FIELDS = ["usertest_id", "title", "prototype_url", "steps"]
 VALID_STEP_TYPES = {"screen", "prototype"}
 VALID_STEP_VARIANTS = {"question", "task", "instruction"}
 REQUIRED_STEP_FIELDS = ["type", "title"]
@@ -35,8 +35,8 @@ RECORDER_SNIPPET = """\
 EXAMPLE_YAML = """\
 # Podojo Unmoderated User Test Configuration
 #
-# Required fields: usertest_id, title, logo, prototype_url, steps
-# Optional fields: welcome_text, promo_code, promo_code_info,
+# Required fields: usertest_id, title, prototype_url, steps
+# Optional fields: logo, welcome_text, promo_code, promo_code_info,
 #                  screening_questions, rejection_message,
 #                  project_name, live, collect_contact
 #
@@ -52,8 +52,11 @@ EXAMPLE_YAML = """\
 
 usertest_id: checkout-usability-v1
 title: Checkout Flow Usability Test
-logo: https://example.com/logo.png
 prototype_url: https://figma.com/proto/abc123
+
+# Optional: logo URL shown to participants. Defaults to your account's logo --
+# only set this to override it for a single test.
+# logo: https://example.com/logo.png
 
 # Optional: welcome message shown to participants (supports markdown)
 welcome_text: |
