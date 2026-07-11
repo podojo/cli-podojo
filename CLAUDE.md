@@ -12,16 +12,10 @@ CLI tool for the Podojo user research platform. Part of the Podojo multi-repo ar
 
 ## Usage
 
-```bash
-podojo auth login <api-key>
-podojo auth logout
-podojo projects list
-podojo transcripts list <project>
-podojo transcripts download <project> <batch_id> -o output.txt
-podojo videos list <project>
-podojo videos download <batch_id> -o output.mp4
-podojo showreel create clips.json -o showreel.mp4
-```
+Command groups (registered in `src/podojo_cli/main.py`): `auth`, `projects`, `interviews`,
+`usertests`, `aiinterviews`, `synth`, `transcripts`, `videos`, `showreel`. The CLI is
+self-documenting — use `podojo --help` and `podojo <group> --help` for current commands
+rather than maintaining a list here.
 
 ## User Tests (Unmoderated Tests)
 
@@ -75,7 +69,3 @@ Set via env vars or `~/.podojo.toml`:
 base_url = "https://your-api.example.com"
 api_key = "your-api-key"
 ```
-
-## Git Commits
-
-- Commit directly to `main` — this is a solo project, no branching needed
