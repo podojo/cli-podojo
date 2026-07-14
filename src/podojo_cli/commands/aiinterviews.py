@@ -24,8 +24,8 @@ EXAMPLE_YAML = """\
 #
 # Required fields: interview_id, title, questions, closing_message
 # Optional fields: language (default en-US), project_name, overview,
-#                  decision, screening_questions, rejection_message, live,
-#                  collect_contact
+#                  decision, screening_questions, welcome_message,
+#                  rejection_message, live, collect_contact
 #
 # Each question:
 #   text            (required) the main question, asked verbatim-ish in order
@@ -64,6 +64,11 @@ overview: |
 # Optional: the decision this research informs
 decision: >
   Redesign the checkout flow to reduce cart abandonment.
+
+# Optional: intro paragraph on the welcome page, below the study title
+welcome_message: >
+  Thanks for joining! We'd like to have a short, friendly conversation about
+  your experience. There are no right or wrong answers — just talk naturally.
 
 # Optional: set interview live (default: false)
 # live: true

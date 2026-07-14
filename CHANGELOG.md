@@ -5,6 +5,14 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.11.0] - 2026-07-14
+
+### Added
+- AI interviews support `welcome_message`: the intro paragraph shown on the
+  welcome page below the study title. Previously this text was fixed in the
+  interview app; without the field the paragraph is omitted. `example` shows
+  the new field.
+
 ## [1.10.0] - 2026-07-11
 
 ### Added

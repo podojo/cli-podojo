@@ -439,6 +439,7 @@ def test_example(runner):
     assert "closing_message:" in result.output
     assert "max_follow_ups:" in result.output
     assert "screening_questions:" in result.output
+    assert "welcome_message:" in result.output
     assert "rejection_message:" in result.output
 
 
