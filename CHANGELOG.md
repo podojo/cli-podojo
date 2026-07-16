@@ -5,6 +5,13 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.12.0] - 2026-07-16
+
+### Changed
+- Default API base URL is now `https://api.podojo.com` (was the Render
+  hostname `podojo-fastapi-mcp.onrender.com`). The old hostname keeps
+  working; `PODOJO_BASE_URL` and `base_url` overrides are unaffected.
+
 ## [1.11.0] - 2026-07-14
 
 ### Added
