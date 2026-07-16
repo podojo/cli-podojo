@@ -5,6 +5,13 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.12.1] - 2026-07-16
+
+### Changed
+- Lowered the required Python version from 3.12 to 3.11 so the CLI installs
+  in environments that ship 3.11 by default (e.g. Claude Cowork). No code
+  changes were needed; the full test suite passes on 3.11.
+
 ## [1.12.0] - 2026-07-16
 
 ### Changed

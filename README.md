@@ -19,7 +19,7 @@ Or with pip:
 pip install podojo-cli
 ```
 
-Requires Python 3.12+. Some commands need extra tooling:
+Requires Python 3.11+. Some commands need extra tooling:
 
 - `showreel` requires [`ffmpeg`](https://ffmpeg.org/) on your `PATH` (`brew install ffmpeg`).
 - `synth` requires the optional `synth` extra: `pip install 'podojo-cli[synth]'` then `playwright install chromium`.

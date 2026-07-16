@@ -4,7 +4,7 @@ CLI tool for the Podojo user research platform. Part of the Podojo multi-repo ar
 
 ## Tech Stack
 
-- Python 3.12, uv for dependency management
+- Python 3.11+ (floor kept at 3.11 so the CLI runs in Claude Cowork), uv for dependency management
 - Typer for CLI framework
 - httpx for HTTP client
 - Rich for terminal output
