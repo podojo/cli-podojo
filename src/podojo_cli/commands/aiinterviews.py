@@ -32,6 +32,12 @@ EXAMPLE_YAML = """\
 #   section         (optional) researcher-facing grouping label
 #   max_follow_ups  (optional, default 2) adaptive follow-up budget
 #   probe_for       (optional) what a concrete answer must cover — drives follow-ups
+#   image / image_file (optional) show participants an image alongside the
+#                   question -- either:
+#     image:      a URL to an externally-hosted image, or
+#     image_file: a path to a local image (uploaded to Podojo storage on
+#                 create/update; relative paths resolve against this YAML
+#                 file's location)
 #
 # Each screening question (optional participant screener, answered on screen
 # before the voice interview starts):
@@ -131,9 +137,10 @@ questions:
 
   - section: Checkout Friction
     text: >
-      When you reach a checkout page, what's the first thing you look at
+      Look at this checkout page. What's the first thing you look at
       before entering your details?
     max_follow_ups: 1
+    image_file: ./screenshots/checkout-page.png
 
 closing_message: >
   Thank you for sharing your experience! Your feedback is incredibly valuable
@@ -226,6 +233,35 @@ def _load_yaml(path: Path) -> dict:
         console.print("[red]Error:[/red] YAML file must contain a mapping (key-value pairs)")
         raise typer.Exit(1)
     return data
+
+
+def _resolve_image_files(data: dict, base_dir: Path, client: PodojoClient) -> None:
+    """Upload any question `image_file` (local path) and replace it with the hosted URL."""
+    questions = data.get("questions")
+    if not isinstance(questions, list):
+        return
+    for i, question in enumerate(questions, 1):
+        if not isinstance(question, dict) or "image_file" not in question:
+            continue
+        raw_path = question.pop("image_file")
+        if not raw_path:
+            continue
+        image_path = Path(raw_path)
+        if not image_path.is_absolute():
+            image_path = (base_dir / image_path).resolve()
+        if not image_path.exists():
+            console.print(f"[red]Error:[/red] Question {i}: image file not found: {image_path}")
+            raise typer.Exit(1)
+        try:
+            result = client.upload_ai_interview_image(image_path)
+        except ValueError as ve:
+            console.print(f"[red]Error:[/red] Question {i}: {ve}")
+            raise typer.Exit(1)
+        except httpx.HTTPStatusError as he:
+            console.print(f"[red]Error:[/red] Question {i}: image upload failed: {_format_api_error(he)}")
+            raise typer.Exit(1)
+        question["image"] = result["url"]
+        console.print(f"[dim]Uploaded image for question {i}: {result['url']}[/dim]")
 
 
 def _format_api_error(e: httpx.HTTPStatusError) -> str:
@@ -329,6 +365,7 @@ def create_ai_interview(
         raise typer.Exit(1)
 
     client = PodojoClient()
+    _resolve_image_files(data, from_file.parent, client)
     try:
         result = client.create_ai_interview(data)
     except httpx.HTTPStatusError as e:
@@ -356,6 +393,7 @@ def update_ai_interview(
     data = _load_yaml(from_file)
 
     client = PodojoClient()
+    _resolve_image_files(data, from_file.parent, client)
     try:
         result = client.update_ai_interview(interview_id, data)
     except httpx.HTTPStatusError as e:

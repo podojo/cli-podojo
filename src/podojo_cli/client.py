@@ -199,6 +199,22 @@ class PodojoClient:
         r.raise_for_status()
         return r.json()
 
+    def upload_ai_interview_image(self, file_path: Path) -> dict:
+        content_type = self.IMAGE_CONTENT_TYPES.get(file_path.suffix.lower())
+        if content_type is None:
+            raise ValueError(
+                f"Unsupported image type '{file_path.suffix}'. Allowed: PNG, JPEG, WebP, GIF."
+            )
+        with file_path.open("rb") as f:
+            r = httpx.post(
+                f"{self.base_url}/ai-interviews/images",
+                files={"file": (file_path.name, f, content_type)},
+                headers=self._headers(),
+                timeout=httpx.Timeout(None),
+            )
+        r.raise_for_status()
+        return r.json()
+
     def create_ai_interview(self, data: dict) -> dict:
         r = httpx.post(
             f"{self.base_url}/ai-interviews",

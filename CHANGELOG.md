@@ -5,6 +5,15 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.13.0] - 2026-07-27
+
+### Added
+- Support `image` / `image_file:` in AI interview question config, mirroring
+  the usertest step option: `image` is an externally-hosted URL used as-is,
+  while `image_file` is a local path uploaded to Podojo-hosted storage on
+  `create`/`update` and replaced with the hosted URL (relative paths resolve
+  against the YAML file's location). `example` shows the new field.
+
 ## [1.12.1] - 2026-07-16
 
 ### Changed
