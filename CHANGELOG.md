@@ -5,6 +5,15 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.14.0] - 2026-07-29
+
+### Added
+- Usertest `prototype` steps support an optional `url` field that overrides
+  `prototype_url` for that step only, so the participant's iframe loads a
+  different URL (e.g. the same prototype started in a different state via a
+  query param). Validated as a non-empty string when present. `example`
+  shows the new field.
+
 ## [1.13.0] - 2026-07-27
 
 ### Added

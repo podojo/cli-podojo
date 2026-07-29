@@ -195,6 +195,58 @@ def test_create_usertest_invalid_step_type(runner, tmp_path):
     assert "'type' must be 'screen' or 'prototype'" in result.output
 
 
+def test_create_usertest_step_url(runner, httpx_mock, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(
+        VALID_USERTEST_YAML.replace(
+            "  - type: prototype\n    title: Try the Flow\n",
+            "  - type: prototype\n"
+            "    title: Try the Flow\n"
+            "    url: https://example.com/proto?state=basic-active\n",
+        )
+    )
+
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/usertests",
+        method="POST",
+        json={"usertest_id": "test-usertest-1", "id": "abc123", "group": "test-group"},
+    )
+
+    result = runner.invoke(app, ["usertests", "create", "-f", str(yaml_file)])
+
+    assert result.exit_code == 0
+
+
+def test_create_usertest_step_url_empty(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(
+        VALID_USERTEST_YAML.replace(
+            "  - type: prototype\n    title: Try the Flow\n",
+            "  - type: prototype\n    title: Try the Flow\n    url: \"\"\n",
+        )
+    )
+
+    result = runner.invoke(app, ["usertests", "create", "-f", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'url' must be a non-empty string" in result.output
+
+
+def test_create_usertest_step_url_not_string(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(
+        VALID_USERTEST_YAML.replace(
+            "  - type: prototype\n    title: Try the Flow\n",
+            "  - type: prototype\n    title: Try the Flow\n    url: 123\n",
+        )
+    )
+
+    result = runner.invoke(app, ["usertests", "create", "-f", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'url' must be a non-empty string" in result.output
+
+
 def test_create_usertest_duplicate(runner, httpx_mock, tmp_path):
     yaml_file = tmp_path / "usertest.yaml"
     yaml_file.write_text(VALID_USERTEST_YAML)

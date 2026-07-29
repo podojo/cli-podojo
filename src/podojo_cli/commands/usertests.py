@@ -122,6 +122,9 @@ rejection_message: >
 #   image:      a URL to an externally-hosted image, or
 #   image_file: a path to a local image (uploaded to Podojo storage on create/update;
 #               relative paths resolve against this YAML file's location)
+# Optional on prototype steps: url — overrides prototype_url for that step only, so the
+# iframe loads this URL instead (e.g. same prototype in a different state via a query
+# param, like ?state=basic-active)
 steps:
   - type: screen
     variant: question
@@ -143,6 +146,7 @@ steps:
     text: |
       Using the prototype below, try to buy a pair of running shoes.
       Think aloud as you go through each step.
+    # url: https://figma.com/proto/abc123?state=basic-active
 
   - type: screen
     variant: task
@@ -191,6 +195,8 @@ def validate_usertest_data(data: dict) -> list[str]:
                     errors.append(
                         f"Step {i}: 'variant' must be one of {sorted(VALID_STEP_VARIANTS)}, got '{variant}'"
                     )
+                if "url" in step and not (isinstance(step["url"], str) and step["url"]):
+                    errors.append(f"Step {i}: 'url' must be a non-empty string")
 
     screening_questions = data.get("screening_questions")
     if screening_questions is not None:
