@@ -74,7 +74,9 @@ promo_code_info: "Use this code for 10% off your next purchase"
 # Optional: link user test to a project
 project_name: checkout-redesign-q1
 
-# Optional: set user test live (default: false)
+# Optional: set user test live (default: false). Going live is blocked unless
+# every prototype URL embeds the recording snippet (`podojo usertests snippet`);
+# bypass with --allow-missing-snippet
 # live: true
 
 # Optional: collect participant name/email on the final screen (default: false)
@@ -283,6 +285,23 @@ def _resolve_image_files(data: dict, base_dir: Path, client: PodojoClient) -> No
         console.print(f"[dim]Uploaded image for step {i}: {result['url']}[/dim]")
 
 
+def _print_snippet_gate_error(e: httpx.HTTPStatusError) -> None:
+    try:
+        detail = e.response.json().get("detail") or {}
+    except Exception:
+        detail = {}
+    url = detail.get("url", "the prototype URL")
+    if detail.get("status") == "unreachable":
+        reason = f"could not reach {url} to verify the recording snippet"
+    else:
+        reason = f"the recording snippet was not found at {url}"
+    console.print(f"[red]Error:[/red] Not going live: {reason}.")
+    console.print("Without the snippet, participant screens are not recorded.")
+    console.print("  - Add the snippet to your prototype's <head>: [bold]podojo usertests snippet[/bold]")
+    console.print("  - or set [bold]live: false[/bold] to save a draft")
+    console.print("  - or re-run with [bold]--allow-missing-snippet[/bold] to go live without screen recording")
+
+
 def _format_api_error(e: httpx.HTTPStatusError) -> str:
     """Format API error into actionable message."""
     try:
@@ -365,6 +384,11 @@ def get_usertest(
 @app.command("create")
 def create_usertest(
     from_file: Path = typer.Option(..., "--from-file", "-f", help="YAML file with user test config"),
+    allow_missing_snippet: bool = typer.Option(
+        False,
+        "--allow-missing-snippet",
+        help="Go live even though the prototype lacks the recording snippet (screens won't be recorded)",
+    ),
 ):
     """Create a new user test from a YAML file."""
     data = _load_yaml(from_file)
@@ -382,10 +406,12 @@ def create_usertest(
     client = PodojoClient()
     _resolve_image_files(data, from_file.parent, client)
     try:
-        result = client.create_usertest(data)
+        result = client.create_usertest(data, skip_snippet_check=allow_missing_snippet)
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 409:
             console.print(f"[red]Error:[/red] User test '{data.get('usertest_id')}' already exists")
+        elif e.response.status_code == 412:
+            _print_snippet_gate_error(e)
         else:
             console.print(f"[red]Error:[/red] {_format_api_error(e)}")
         raise typer.Exit(1)
@@ -407,6 +433,11 @@ def create_usertest(
 def update_usertest(
     usertest_id: str = typer.Argument(help="User test ID to update"),
     from_file: Path = typer.Option(..., "--from-file", "-f", help="YAML file with fields to update"),
+    allow_missing_snippet: bool = typer.Option(
+        False,
+        "--allow-missing-snippet",
+        help="Go live even though the prototype lacks the recording snippet (screens won't be recorded)",
+    ),
 ):
     """Update a user test from a YAML file (partial updates OK)."""
     data = _load_yaml(from_file)
@@ -414,10 +445,12 @@ def update_usertest(
     client = PodojoClient()
     _resolve_image_files(data, from_file.parent, client)
     try:
-        result = client.update_usertest(usertest_id, data)
+        result = client.update_usertest(usertest_id, data, skip_snippet_check=allow_missing_snippet)
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
             console.print(f"[red]Error:[/red] User test '{usertest_id}' not found")
+        elif e.response.status_code == 412:
+            _print_snippet_gate_error(e)
         else:
             console.print(f"[red]Error:[/red] {_format_api_error(e)}")
         raise typer.Exit(1)

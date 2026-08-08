@@ -5,6 +5,16 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.15.0] - 2026-08-08
+
+### Added
+- Going live is now gated on the recording snippet: the backend refuses
+  `usertests create`/`update` with `live: true` when the prototype (or a
+  per-step `url`) doesn't embed the recording snippet or can't be reached,
+  since sessions would run without screen recording. The CLI explains the
+  failure and the fixes; `--allow-missing-snippet` bypasses the gate
+  deliberately.
+
 ## [1.14.0] - 2026-07-29
 
 ### Added

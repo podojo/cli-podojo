@@ -156,20 +156,28 @@ class PodojoClient:
         r.raise_for_status()
         return r.json()
 
-    def create_usertest(self, data: dict) -> dict:
+    # Going live triggers a server-side fetch of the prototype (snippet gate),
+    # which can take well beyond the default 5s timeout.
+    USERTEST_WRITE_TIMEOUT = httpx.Timeout(90.0)
+
+    def create_usertest(self, data: dict, skip_snippet_check: bool = False) -> dict:
         r = httpx.post(
             f"{self.base_url}/usertests",
             json=data,
+            params={"skip_snippet_check": "true"} if skip_snippet_check else None,
             headers=self._headers(),
+            timeout=self.USERTEST_WRITE_TIMEOUT,
         )
         r.raise_for_status()
         return r.json()
 
-    def update_usertest(self, usertest_id: str, data: dict) -> dict:
+    def update_usertest(self, usertest_id: str, data: dict, skip_snippet_check: bool = False) -> dict:
         r = httpx.put(
             f"{self.base_url}/usertests/{usertest_id}",
             json=data,
+            params={"skip_snippet_check": "true"} if skip_snippet_check else None,
             headers=self._headers(),
+            timeout=self.USERTEST_WRITE_TIMEOUT,
         )
         r.raise_for_status()
         return r.json()

@@ -297,6 +297,88 @@ def test_update_usertest_not_found(runner, httpx_mock, tmp_path):
     assert "not found" in result.output
 
 
+SNIPPET_GATE_RESPONSE = {
+    "detail": {
+        "code": "snippet-check-failed",
+        "status": "missing",
+        "url": "https://example.com/proto",
+    }
+}
+
+
+def test_create_usertest_snippet_gate(runner, httpx_mock, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(VALID_USERTEST_YAML + "live: true\n")
+
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/usertests",
+        method="POST",
+        status_code=412,
+        json=SNIPPET_GATE_RESPONSE,
+    )
+
+    result = runner.invoke(app, ["usertests", "create", "-f", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "recording snippet was not found" in result.output
+    assert "https://example.com/proto" in result.output
+    assert "--allow-missing-snippet" in result.output
+
+
+def test_create_usertest_allow_missing_snippet(runner, httpx_mock, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(VALID_USERTEST_YAML + "live: true\n")
+
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/usertests?skip_snippet_check=true",
+        method="POST",
+        json={"usertest_id": "test-usertest-1", "id": "abc123", "group": "test-group"},
+    )
+
+    result = runner.invoke(
+        app, ["usertests", "create", "-f", str(yaml_file), "--allow-missing-snippet"]
+    )
+
+    assert result.exit_code == 0
+    assert "test-usertest-1" in result.output
+
+
+def test_update_usertest_snippet_gate(runner, httpx_mock, tmp_path):
+    yaml_file = tmp_path / "update.yaml"
+    yaml_file.write_text("live: true\n")
+
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/usertests/ut-1",
+        method="PUT",
+        status_code=412,
+        json=SNIPPET_GATE_RESPONSE,
+    )
+
+    result = runner.invoke(app, ["usertests", "update", "ut-1", "-f", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "recording snippet was not found" in result.output
+    assert "--allow-missing-snippet" in result.output
+
+
+def test_update_usertest_allow_missing_snippet(runner, httpx_mock, tmp_path):
+    yaml_file = tmp_path / "update.yaml"
+    yaml_file.write_text("live: true\n")
+
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/usertests/ut-1?skip_snippet_check=true",
+        method="PUT",
+        json={"usertest_id": "ut-1", "live": True},
+    )
+
+    result = runner.invoke(
+        app, ["usertests", "update", "ut-1", "-f", str(yaml_file), "--allow-missing-snippet"]
+    )
+
+    assert result.exit_code == 0
+    assert "Updated user test" in result.output
+
+
 def test_delete_usertest(runner, httpx_mock):
     httpx_mock.add_response(
         url="http://test.local/api/v1/usertests/ut-1",
