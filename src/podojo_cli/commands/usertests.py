@@ -38,7 +38,7 @@ EXAMPLE_YAML = """\
 # Required fields: usertest_id, title, prototype_url, steps
 # Optional fields: logo, welcome_text, promo_code, promo_code_info,
 #                  screening_questions, rejection_message,
-#                  project_name, live, collect_contact
+#                  project_name, live, collect_contact, max_responses
 #
 # Each screening question (optional participant screener, answered on screen
 # before consent — screening is never recorded):
@@ -81,6 +81,13 @@ project_name: checkout-redesign-q1
 
 # Optional: collect participant name/email on the final screen (default: false)
 # collect_contact: true
+
+# Optional: close the test automatically once this many participants have
+# completed a session (default: unlimited). The test goes off live and new
+# visitors see "not available"; participants already mid-session still finish,
+# so the final count can slightly exceed this number. To collect more
+# responses later, raise max_responses and set live: true again.
+# max_responses: 20
 
 # Optional: participant screener — shown on screen before consent and
 # recording. Only qualified participants reach the test; screen-out answers
@@ -172,6 +179,12 @@ def validate_usertest_data(data: dict) -> list[str]:
     for field in REQUIRED_FIELDS:
         if field not in data or data[field] is None:
             errors.append(f"Missing required field: '{field}'")
+
+    max_responses = data.get("max_responses")
+    if max_responses is not None and (
+        isinstance(max_responses, bool) or not isinstance(max_responses, int) or max_responses < 1
+    ):
+        errors.append("'max_responses' must be a positive integer")
 
     steps = data.get("steps")
     if steps is not None:
@@ -340,15 +353,20 @@ def list_usertests(
     table.add_column("Title")
     table.add_column("Steps", justify="right")
     table.add_column("Live")
+    table.add_column("Responses", justify="right")
     table.add_column("Last Updated")
 
     for s in usertests:
         live = "[green]Yes[/green]" if s.get("live") else "[dim]No[/dim]"
+        count = s.get("response_count") or 0
+        max_responses = s.get("max_responses")
+        responses = f"{count} / {max_responses}" if max_responses else str(count)
         table.add_row(
             s.get("usertest_id", ""),
             s.get("title", ""),
             str(s.get("step_count", "")),
             live,
+            responses,
             s.get("last_updated", ""),
         )
 
@@ -372,10 +390,16 @@ def get_usertest(
 
     # Remove server-managed fields for a clean editable output
     group = usertest.pop("group", "")
+    response_count = usertest.pop("response_count", 0) or 0
     for key in ("id", "created_at", "created_by", "last_updated"):
         usertest.pop(key, None)
 
     console.print(yaml.dump(usertest, default_flow_style=False, sort_keys=False, allow_unicode=True))
+    max_responses = usertest.get("max_responses")
+    if max_responses:
+        console.print(f"Responses: {response_count} / {max_responses}")
+    elif response_count:
+        console.print(f"Responses: {response_count}")
     if group:
         console.print(f"Preview: https://usertests.podojo.com/preview/{group}/{usertest_id}")
         console.print(f"Live:    https://usertests.podojo.com/{group}?test={usertest_id}")

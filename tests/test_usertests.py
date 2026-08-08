@@ -24,6 +24,8 @@ LIST_RESPONSE = {
             "client": "Acme",
             "step_count": 3,
             "live": True,
+            "max_responses": 20,
+            "response_count": 7,
             "last_updated": "2026-03-01T12:00:00",
         },
         {
@@ -47,6 +49,8 @@ GET_RESPONSE = {
     "prototype_url": "https://example.com/proto",
     "steps": [{"type": "screen", "variant": "question", "title": "Q1"}],
     "group": "test-group",
+    "max_responses": 20,
+    "response_count": 7,
     "created_at": "2026-03-01T12:00:00",
     "created_by": "user@example.com",
     "last_updated": "2026-03-01T12:00:00",
@@ -64,6 +68,7 @@ def test_list_usertests(runner, httpx_mock):
     assert result.exit_code == 0
     assert "User Test One" in result.output
     assert "User Test Two" in result.output
+    assert "7 / 20" in result.output
 
 
 def test_list_usertests_empty(runner, httpx_mock):
@@ -89,6 +94,11 @@ def test_get_usertest(runner, httpx_mock):
     assert result.exit_code == 0
     assert "usertest_id: ut-1" in result.output
     assert "title: User Test One" in result.output
+    # max_responses is editable config; response_count is server-managed and
+    # shown as a progress line instead
+    assert "max_responses: 20" in result.output
+    assert "response_count" not in result.output
+    assert "Responses: 7 / 20" in result.output
     # Server-managed fields should be stripped
     assert "created_at" not in result.output
     assert "created_by" not in result.output
@@ -424,6 +434,35 @@ def test_validate_invalid(runner, tmp_path):
 
     assert result.exit_code == 1
     assert "Missing required field" in result.output
+
+
+def test_validate_max_responses(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(VALID_USERTEST_YAML + "max_responses: 20\n")
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 0
+
+
+def test_validate_max_responses_must_be_positive(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(VALID_USERTEST_YAML + "max_responses: 0\n")
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'max_responses' must be a positive integer" in result.output
+
+
+def test_validate_max_responses_must_be_an_integer(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(VALID_USERTEST_YAML + "max_responses: twenty\n")
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'max_responses' must be a positive integer" in result.output
 
 
 SCREENING_YAML = VALID_USERTEST_YAML + """\
