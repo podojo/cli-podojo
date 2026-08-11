@@ -5,6 +5,15 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.17.0] - 2026-08-11
+
+### Added
+- AI interviews support the same optional `max_responses` response quota as
+  usertests: once that many participants complete a session, the interview
+  automatically goes off live and new visitors see "not available". Raise
+  `max_responses` and set `live: true` again to collect more. `list` shows
+  a Responses column and `get` prints a `Responses: N / M` progress line.
+
 ## [1.16.0] - 2026-08-08
 
 ### Added

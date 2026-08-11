@@ -25,7 +25,7 @@ EXAMPLE_YAML = """\
 # Required fields: interview_id, title, questions, closing_message
 # Optional fields: language (default en-US), project_name, overview,
 #                  decision, screening_questions, welcome_message,
-#                  rejection_message, live, collect_contact
+#                  rejection_message, live, collect_contact, max_responses
 #
 # Each question:
 #   text            (required) the main question, asked verbatim-ish in order
@@ -82,6 +82,13 @@ welcome_message: >
 # Optional: collect participant name/email on a dedicated screen after the
 # interview (default: false)
 # collect_contact: true
+
+# Optional: close the interview automatically once this many participants have
+# completed a session (default: unlimited). The interview goes off live and new
+# visitors see "not available"; participants already mid-conversation still
+# finish, so the final count can slightly exceed this number. To collect more
+# responses later, raise max_responses and set live: true again.
+# max_responses: 20
 
 # Optional: participant screener — shown on screen (no audio) before the
 # conversation. Answers are captured alongside the session's recording.
@@ -154,6 +161,12 @@ def validate_ai_interview_data(data: dict) -> list[str]:
     for field in REQUIRED_FIELDS:
         if field not in data or data[field] is None:
             errors.append(f"Missing required field: '{field}'")
+
+    max_responses = data.get("max_responses")
+    if max_responses is not None and (
+        isinstance(max_responses, bool) or not isinstance(max_responses, int) or max_responses < 1
+    ):
+        errors.append("'max_responses' must be a positive integer")
 
     questions = data.get("questions")
     if questions is not None:
@@ -307,16 +320,21 @@ def list_ai_interviews(
     table.add_column("Language")
     table.add_column("Questions", justify="right")
     table.add_column("Live")
+    table.add_column("Responses", justify="right")
     table.add_column("Last Updated")
 
     for s in ai_interviews:
         live = "[green]Yes[/green]" if s.get("live") else "[dim]No[/dim]"
+        count = s.get("response_count") or 0
+        max_responses = s.get("max_responses")
+        responses = f"{count} / {max_responses}" if max_responses else str(count)
         table.add_row(
             s.get("interview_id", ""),
             s.get("title", ""),
             s.get("language", ""),
             str(s.get("question_count", "")),
             live,
+            responses,
             s.get("last_updated", ""),
         )
 
@@ -340,10 +358,16 @@ def get_ai_interview(
 
     # Remove server-managed fields for a clean editable output
     group = interview.pop("group", "")
+    response_count = interview.pop("response_count", 0) or 0
     for key in ("id", "created_at", "created_by", "last_updated"):
         interview.pop(key, None)
 
     console.print(yaml.dump(interview, default_flow_style=False, sort_keys=False, allow_unicode=True))
+    max_responses = interview.get("max_responses")
+    if max_responses:
+        console.print(f"Responses: {response_count} / {max_responses}")
+    elif response_count:
+        console.print(f"Responses: {response_count}")
     if group:
         base = _ai_interviews_url()
         console.print(f"Preview: {base}/preview/{group}/{interview_id}")

@@ -26,6 +26,8 @@ LIST_RESPONSE = {
             "question_count": 3,
             "project_name": "proj-1",
             "live": True,
+            "max_responses": 20,
+            "response_count": 7,
             "created_at": "2026-06-01T12:00:00",
             "created_by": "user@example.com",
             "last_updated": "2026-06-01T12:00:00",
@@ -59,6 +61,8 @@ GET_RESPONSE = {
     "questions": [{"text": "Walk me through your last purchase.", "max_follow_ups": 2}],
     "closing_message": "Thanks!",
     "live": False,
+    "max_responses": 20,
+    "response_count": 7,
     "group": "test-group",
     "created_at": "2026-06-01T12:00:00",
     "created_by": "user@example.com",
@@ -77,6 +81,7 @@ def test_list_ai_interviews(runner, httpx_mock):
     assert result.exit_code == 0
     assert "Interview One" in result.output
     assert "Interview Two" in result.output
+    assert "7 / 20" in result.output
 
 
 def test_list_ai_interviews_empty(runner, httpx_mock):
@@ -102,6 +107,11 @@ def test_get_ai_interview(runner, httpx_mock):
     assert result.exit_code == 0
     assert "interview_id: ai-1" in result.output
     assert "title: Interview One" in result.output
+    # max_responses is editable config; response_count is server-managed and
+    # shown as a progress line instead
+    assert "max_responses: 20" in result.output
+    assert "response_count" not in result.output
+    assert "Responses: 7 / 20" in result.output
     # Server-managed fields should be stripped
     assert "created_at" not in result.output
     assert "created_by" not in result.output
@@ -327,6 +337,35 @@ def test_validate_invalid(runner, tmp_path):
 
     assert result.exit_code == 1
     assert "Missing required field" in result.output
+
+
+def test_validate_max_responses(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(VALID_AI_INTERVIEW_YAML + "max_responses: 20\n")
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 0
+
+
+def test_validate_max_responses_must_be_positive(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(VALID_AI_INTERVIEW_YAML + "max_responses: 0\n")
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'max_responses' must be a positive integer" in result.output
+
+
+def test_validate_max_responses_must_be_an_integer(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(VALID_AI_INTERVIEW_YAML + "max_responses: twenty\n")
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'max_responses' must be a positive integer" in result.output
 
 
 SCREENING_YAML = VALID_AI_INTERVIEW_YAML + """\

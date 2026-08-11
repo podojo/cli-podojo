@@ -49,3 +49,10 @@ def mock_config(monkeypatch):
 @pytest.fixture(autouse=True)
 def disable_version_check(monkeypatch):
     monkeypatch.setattr("podojo_cli.main.check_for_update", lambda: None)
+
+
+@pytest.fixture(autouse=True)
+def wide_terminal(monkeypatch):
+    """Rich wraps table cells in the default 80-column test terminal, which
+    breaks substring assertions on wider tables."""
+    monkeypatch.setenv("COLUMNS", "120")
