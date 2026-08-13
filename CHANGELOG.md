@@ -5,6 +5,14 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.18.0] - 2026-08-13
+
+### Added
+- Usertests support an optional `required_device` (`mobile` or `desktop`):
+  participants who open the link on the other kind of device are asked to
+  switch over before the welcome screen, so they never start a screener or
+  use up a session. Tablets count as mobile. Leave unset for any device.
+
 ## [1.17.0] - 2026-08-11
 
 ### Added

@@ -37,8 +37,8 @@ EXAMPLE_YAML = """\
 #
 # Required fields: usertest_id, title, prototype_url, steps
 # Optional fields: logo, welcome_text, promo_code, promo_code_info,
-#                  screening_questions, rejection_message,
-#                  project_name, live, collect_contact, max_responses
+#                  screening_questions, rejection_message, project_name,
+#                  live, collect_contact, max_responses, required_device
 #
 # Each screening question (optional participant screener, answered on screen
 # before consent — screening is never recorded):
@@ -88,6 +88,12 @@ project_name: checkout-redesign-q1
 # so the final count can slightly exceed this number. To collect more
 # responses later, raise max_responses and set live: true again.
 # max_responses: 20
+
+# Optional: restrict the test to one kind of device — "mobile" (phone or
+# tablet) or "desktop" (default: any device). Participants who open the link on
+# the other kind are asked to switch over before the welcome screen, so they
+# never start a screener or use up a session.
+# required_device: mobile
 
 # Optional: participant screener — shown on screen before consent and
 # recording. Only qualified participants reach the test; screen-out answers
@@ -185,6 +191,10 @@ def validate_usertest_data(data: dict) -> list[str]:
         isinstance(max_responses, bool) or not isinstance(max_responses, int) or max_responses < 1
     ):
         errors.append("'max_responses' must be a positive integer")
+
+    required_device = data.get("required_device")
+    if required_device is not None and required_device not in ("mobile", "desktop"):
+        errors.append("'required_device' must be 'mobile' or 'desktop'")
 
     steps = data.get("steps")
     if steps is not None:

@@ -98,6 +98,11 @@ flags. Participants must pick a qualifying option on every question; everyone
 else sees the test's `rejection_message` and never reaches the recorded test.
 See `podojo usertests example` for the exact shape.
 
+Set `required_device: mobile` or `required_device: desktop` to restrict a test
+to one kind of device. Participants who open the link on the other kind are
+asked to switch over before the welcome screen, so they never start a screener
+or use up a session. Tablets count as mobile.
+
 ### AI interviews
 
 An AI interview is a self-serve voice conversation: an AI interviewer asks

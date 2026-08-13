@@ -465,6 +465,25 @@ def test_validate_max_responses_must_be_an_integer(runner, tmp_path):
     assert "'max_responses' must be a positive integer" in result.output
 
 
+def test_validate_required_device(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(VALID_USERTEST_YAML + "required_device: mobile\n")
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 0
+
+
+def test_validate_required_device_rejects_other_values(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(VALID_USERTEST_YAML + "required_device: tablet\n")
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'required_device' must be 'mobile' or 'desktop'" in result.output
+
+
 SCREENING_YAML = VALID_USERTEST_YAML + """\
 screening_questions:
   - text: Do you shop online?
