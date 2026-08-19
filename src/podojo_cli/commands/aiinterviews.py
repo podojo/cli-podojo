@@ -39,15 +39,21 @@ EXAMPLE_YAML = """\
 #                 create/update; relative paths resolve against this YAML
 #                 file's location)
 #
-# Each screening question (optional participant screener, answered on screen
-# before the voice interview starts):
+# Each screening question (optional closed questions, answered on screen
+# before the voice interview starts; answers are recorded with the session):
 #   text            (required) multiple-choice question
 #   multi_select    (optional, default false) participants can pick several
-#                   options; one qualifying pick passes the question
-#   options         (required, at least 2) each with `text` and an optional
-#                   `qualifies: true` — participants must pick a qualifying
-#                   option on every question, otherwise they see the
-#                   rejection_message and the interview never starts
+#                   options
+#   screener        (optional, default false) the question screens: participants
+#                   must pick an option with `qualifies: true`, otherwise they
+#                   see the rejection_message and the interview never starts
+#   show_if         (optional) show this question only if an earlier screening
+#                   question was answered with one of the given options, e.g.
+#                   `show_if: {question: 0, options: [1, 2]}` — 0-based indices
+#                   into screening_questions and that question's options
+#   options         (required, at least 2) each with `text`; `qualifies: true`
+#                   marks the accepted answers of a screener question and is
+#                   ignored on plain closed questions
 
 interview_id: checkout-experience-v1
 title: Checkout Experience Research
@@ -90,33 +96,36 @@ welcome_message: >
 # responses later, raise max_responses and set live: true again.
 # max_responses: 20
 
-# Optional: participant screener — shown on screen (no audio) before the
-# conversation. Answers are captured alongside the session's recording.
+# Optional: closed questions — shown on screen (no audio) before the
+# conversation. Answers are captured alongside the session's recording; only
+# questions marked `screener: true` can screen participants out.
 screening_questions:
   - text: How often do you shop online?
     options:
       - text: Rarely or never
       - text: A few times a year
       - text: At least once a month
-        qualifies: true
       - text: Weekly or more
-        qualifies: true
 
   - text: Have you abandoned an online purchase at checkout in the past 3 months?
+    screener: true
     options:
       - text: "Yes"
         qualifies: true
       - text: "No"
       - text: Not sure
 
-  - text: Which devices do you use to shop online?
+  # Asked only when the previous question (index 1) was answered "Yes" (option 0)
+  - text: What made you abandon the purchase?
     multi_select: true
+    show_if:
+      question: 1
+      options: [0]
     options:
-      - text: Phone
-        qualifies: true
-      - text: Laptop or desktop
-        qualifies: true
-      - text: I don't shop online
+      - text: Unexpected costs
+      - text: Forced account creation
+      - text: Missing payment options
+      - text: Delivery time
 
 # Optional: shown to participants whose screener answers don't qualify
 rejection_message: >
@@ -206,6 +215,47 @@ def validate_ai_interview_data(data: dict) -> list[str]:
                     errors.append(
                         f"Screening question {i}: 'multi_select' must be true or false"
                     )
+                screener = question.get("screener", False)
+                if not isinstance(screener, bool):
+                    errors.append(f"Screening question {i}: 'screener' must be true or false")
+                    screener = False
+                show_if = question.get("show_if")
+                if show_if is not None:
+                    if not isinstance(show_if, dict):
+                        errors.append(
+                            f"Screening question {i}: 'show_if' must be a mapping with "
+                            "'question' and 'options'"
+                        )
+                    else:
+                        ref = show_if.get("question")
+                        if isinstance(ref, bool) or not isinstance(ref, int) or not 0 <= ref < i - 1:
+                            errors.append(
+                                f"Screening question {i}: 'show_if.question' must be the 0-based "
+                                "index of an earlier screening question"
+                            )
+                            ref = None
+                        ref_options = show_if.get("options")
+                        if not isinstance(ref_options, list) or len(ref_options) == 0:
+                            errors.append(
+                                f"Screening question {i}: 'show_if.options' must list at least "
+                                "one option index"
+                            )
+                        elif ref is not None:
+                            trigger = screening_questions[ref]
+                            trigger_options = (
+                                trigger.get("options") if isinstance(trigger, dict) else None
+                            )
+                            limit = len(trigger_options) if isinstance(trigger_options, list) else 0
+                            for index in ref_options:
+                                if (
+                                    isinstance(index, bool)
+                                    or not isinstance(index, int)
+                                    or not 0 <= index < limit
+                                ):
+                                    errors.append(
+                                        f"Screening question {i}: 'show_if.options' index "
+                                        f"{index} is out of range for screening question {ref + 1}"
+                                    )
                 options = question.get("options")
                 if not isinstance(options, list) or len(options) < 2:
                     errors.append(f"Screening question {i}: 'options' must list at least 2 options")
@@ -224,9 +274,14 @@ def validate_ai_interview_data(data: dict) -> list[str]:
                         )
                     elif qualifies:
                         qualifying += 1
-                if qualifying == 0:
+                if screener and qualifying == 0:
                     errors.append(
                         f"Screening question {i}: needs at least one option with 'qualifies: true'"
+                    )
+                if not screener and 0 < qualifying < len(options):
+                    errors.append(
+                        f"Screening question {i}: has non-qualifying options but no "
+                        "'screener: true' — set it, or drop the 'qualifies' flags"
                     )
     return errors
 

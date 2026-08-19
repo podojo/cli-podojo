@@ -123,10 +123,13 @@ podojo aiinterviews delete checkout-experience-v1
 base URL can be overridden via `ai_interviews_url` in `~/.podojo.toml` or
 `PODOJO_AI_INTERVIEWS_URL`.
 
-A study can open with an optional participant screener: on-screen single-select
-`screening_questions` whose options carry `qualifies: true` flags. Participants
-must pick a qualifying option on every question; everyone else sees the study's
-`rejection_message` and never reaches the voice interview. See
+A study can open with optional on-screen `screening_questions` (closed
+multiple-choice questions; `multi_select: true` allows several picks). Answers
+are recorded with each session. A question marked `screener: true` also gates
+entry: its options carry `qualifies: true` flags, and participants who don't
+pick a qualifying option see the study's `rejection_message` and never reach
+the voice interview. A question can carry a `show_if` condition to appear only
+when an earlier question was answered with specific options. See
 `podojo aiinterviews example` for the exact shape.
 
 ### Synthetic participants

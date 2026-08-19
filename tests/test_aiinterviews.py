@@ -371,18 +371,27 @@ def test_validate_max_responses_must_be_an_integer(runner, tmp_path):
 SCREENING_YAML = VALID_AI_INTERVIEW_YAML + """\
 screening_questions:
   - text: Do you currently drive for a ridehailing platform?
+    screener: true
     options:
       - text: "Yes"
         qualifies: true
       - text: "No"
   - text: How many rides did you complete last month?
     multi_select: true
+    screener: true
     options:
       - text: 0 rides
       - text: 1-10 rides
         qualifies: true
       - text: More than 10 rides
         qualifies: true
+  - text: Which platform do you drive for most?
+    show_if:
+      question: 0
+      options: [0]
+    options:
+      - text: Uber
+      - text: Bolt
 rejection_message: You did not meet the research criteria for this study.
 """
 
@@ -414,12 +423,13 @@ def test_validate_screening_question_needs_two_options(runner, tmp_path):
     assert "'options' must list at least 2 options" in result.output
 
 
-def test_validate_screening_question_needs_a_qualifying_option(runner, tmp_path):
+def test_validate_screener_needs_a_qualifying_option(runner, tmp_path):
     yaml_file = tmp_path / "interview.yaml"
     yaml_file.write_text(
         VALID_AI_INTERVIEW_YAML
         + "screening_questions:\n"
         + "  - text: Nobody can pass this one\n"
+        + "    screener: true\n"
         + "    options:\n"
         + "      - text: A\n"
         + "      - text: B\n"
@@ -429,6 +439,127 @@ def test_validate_screening_question_needs_a_qualifying_option(runner, tmp_path)
 
     assert result.exit_code == 1
     assert "needs at least one option with 'qualifies: true'" in result.output
+
+
+def test_validate_plain_closed_question_needs_no_qualifies(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        VALID_AI_INTERVIEW_YAML
+        + "screening_questions:\n"
+        + "  - text: Just recording the answer\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "      - text: B\n"
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 0
+    assert "Valid AI interview config" in result.output
+
+
+def test_validate_mixed_qualifies_requires_the_screener_flag(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        VALID_AI_INTERVIEW_YAML
+        + "screening_questions:\n"
+        + "  - text: Meant to screen but not flagged\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "        qualifies: true\n"
+        + "      - text: B\n"
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "has non-qualifying options" in result.output
+
+
+def test_validate_screener_must_be_bool(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        VALID_AI_INTERVIEW_YAML
+        + "screening_questions:\n"
+        + "  - text: Q\n"
+        + "    screener: yep\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "      - text: B\n"
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'screener' must be true or false" in result.output
+
+
+def test_validate_show_if_must_reference_an_earlier_question(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        VALID_AI_INTERVIEW_YAML
+        + "screening_questions:\n"
+        + "  - text: Q1\n"
+        + "    show_if:\n"
+        + "      question: 0\n"
+        + "      options: [0]\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "      - text: B\n"
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "index of an earlier screening question" in result.output
+
+
+def test_validate_show_if_option_out_of_range(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        VALID_AI_INTERVIEW_YAML
+        + "screening_questions:\n"
+        + "  - text: Q1\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "      - text: B\n"
+        + "  - text: Q2\n"
+        + "    show_if:\n"
+        + "      question: 0\n"
+        + "      options: [2]\n"
+        + "    options:\n"
+        + "      - text: C\n"
+        + "      - text: D\n"
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "out of range" in result.output
+
+
+def test_validate_show_if_needs_at_least_one_option(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        VALID_AI_INTERVIEW_YAML
+        + "screening_questions:\n"
+        + "  - text: Q1\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "      - text: B\n"
+        + "  - text: Q2\n"
+        + "    show_if:\n"
+        + "      question: 0\n"
+        + "      options: []\n"
+        + "    options:\n"
+        + "      - text: C\n"
+        + "      - text: D\n"
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'show_if.options' must list at least" in result.output
 
 
 def test_validate_screening_multi_select_must_be_bool(runner, tmp_path):

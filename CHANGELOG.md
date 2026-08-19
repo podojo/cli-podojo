@@ -5,6 +5,22 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.19.0] - 2026-08-19
+
+### Changed
+- AI interview `screening_questions` no longer screen by default: a question
+  only gates entry when it carries `screener: true` (then at least one option
+  needs `qualifies: true`, as before). Questions without the flag are plain
+  closed questions — every answer is accepted and `qualifies` flags are not
+  needed. Mixed `qualifies` flags without `screener: true` are rejected by
+  `validate`/`create` so a study can't silently stop screening.
+
+### Added
+- AI interview screening questions support `show_if` display conditions: show
+  a question only when an earlier screening question was answered with one of
+  the given options (`show_if: {question: 0, options: [1, 2]}`, 0-based
+  indices). See `podojo aiinterviews example`.
+
 ## [1.18.0] - 2026-08-13
 
 ### Added
