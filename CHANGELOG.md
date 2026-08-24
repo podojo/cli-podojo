@@ -5,6 +5,12 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.21.0] - 2026-08-24
+
+### Removed
+- `interviews label` and the Quality column in `transcripts list`: the
+  interview quality label feature has been removed from the platform.
+
 ## [1.20.0] - 2026-08-24
 
 ### Removed
