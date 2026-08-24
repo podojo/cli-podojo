@@ -52,12 +52,7 @@ podojo <group> --help    # help for a command group
 ```bash
 podojo projects list
 podojo projects create "Checkout Redesign" --brief "Q1 usability study"
-podojo projects upload-doc "Checkout Redesign" brief.md --type brief
-podojo projects get-doc "Checkout Redesign" --type final -o final-report.md
 ```
-
-`upload-doc` and `get-doc` accept `brief`, `agent`, and `final` document types.
-Embedded images are stripped from markdown before upload.
 
 ### Interviews & transcripts
 

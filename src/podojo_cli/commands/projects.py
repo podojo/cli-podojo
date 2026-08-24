@@ -1,6 +1,3 @@
-import re
-from pathlib import Path
-
 import httpx
 import typer
 from rich.console import Console
@@ -10,41 +7,6 @@ from ..client import PodojoClient
 
 app = typer.Typer(help="Manage projects")
 console = Console()
-
-CLI_TO_API_DOC_TYPE = {
-    "brief": "research_brief",
-    "agent": "agent_report",
-    "final": "final_report",
-}
-UPLOADABLE_DOC_TYPES = {"brief", "agent", "final"}
-MARKDOWN_SUFFIXES = {".md", ".markdown"}
-
-# Reference-style image definition with a data: URL — `[label]: <data:image/png;base64,...>`
-# These pack base64-encoded images into a single line and dominate file size.
-DATA_URI_REF_DEF_RE = re.compile(
-    r"^\s*\[[^\]\n]+\]:\s+<?data:[^\n>]*>?[^\n]*\n?",
-    re.MULTILINE,
-)
-INLINE_IMG_RE = re.compile(r"!\[[^\]]*\]\([^)]*\)")
-REF_IMG_RE = re.compile(r"!\[[^\]]*\]\[[^\]]*\]")
-HTML_IMG_RE = re.compile(r"<img\b[^>]*/?>", re.IGNORECASE)
-
-
-def strip_images(text: str) -> tuple[str, int]:
-    """Remove image markdown and HTML img tags. Returns (cleaned_text, count_removed)."""
-    count = 0
-    for pattern in (DATA_URI_REF_DEF_RE, INLINE_IMG_RE, REF_IMG_RE, HTML_IMG_RE):
-        text, n = pattern.subn("", text)
-        count += n
-    return text, count
-
-
-def _human_size(n: int) -> str:
-    if n >= 1024 * 1024:
-        return f"{n / 1024 / 1024:.1f} MB"
-    if n >= 1024:
-        return f"{n / 1024:.1f} KB"
-    return f"{n} B"
 
 
 @app.command("list")
@@ -83,88 +45,3 @@ def create_project(
         raise typer.Exit(code=1)
 
     console.print(f"Created project [bold]{result['name']}[/bold] (id={result['id']})")
-
-
-@app.command("upload-doc")
-def upload_doc(
-    project_name: str = typer.Argument(help="Project name"),
-    file: Path = typer.Argument(
-        help="Markdown file to upload",
-        exists=True,
-        dir_okay=False,
-        readable=True,
-    ),
-    doc_type: str = typer.Option(
-        ..., "--type", "-t",
-        help="Document type: 'brief' (research brief), 'agent' (agent report), or 'final' (final report)",
-    ),
-):
-    """Upload a research brief, agent report, or final report markdown file to a project."""
-    if doc_type not in UPLOADABLE_DOC_TYPES:
-        console.print(f"[red]Error:[/red] --type must be one of: {', '.join(sorted(UPLOADABLE_DOC_TYPES))}")
-        raise typer.Exit(1)
-
-    if file.suffix.lower() not in MARKDOWN_SUFFIXES:
-        console.print(f"[red]Error:[/red] Expected a .md file, got {file.suffix or '(no extension)'}")
-        raise typer.Exit(1)
-
-    try:
-        content = file.read_text(encoding="utf-8")
-    except UnicodeDecodeError:
-        console.print(f"[red]Error:[/red] File is not valid UTF-8 text: {file}")
-        raise typer.Exit(1)
-
-    original_size = len(content.encode("utf-8"))
-    content, image_count = strip_images(content)
-    new_size = len(content.encode("utf-8"))
-    if image_count:
-        console.print(
-            f"Stripped [bold]{image_count}[/bold] image(s) "
-            f"({_human_size(original_size)} → {_human_size(new_size)})"
-        )
-
-    api_type = CLI_TO_API_DOC_TYPE[doc_type]
-    client = PodojoClient()
-    try:
-        client.upload_project_document(project_name, api_type, content)
-    except httpx.HTTPStatusError as e:
-        if e.response.status_code == 404:
-            console.print(f"[red]Project '{project_name}' not found.[/red]")
-            raise typer.Exit(code=1)
-        console.print(f"[red]{e.response.status_code}: {e.response.text}[/red]")
-        raise typer.Exit(code=1)
-
-    console.print(f"Uploaded [bold]{doc_type}[/bold] for project [bold]{project_name}[/bold]")
-
-
-@app.command("get-doc")
-def get_doc(
-    project_name: str = typer.Argument(help="Project name"),
-    doc_type: str = typer.Option(
-        ..., "--type", "-t",
-        help="Document type: 'brief', 'agent', or 'final'",
-    ),
-    output: Path = typer.Option(None, "--output", "-o", help="Save to file instead of stdout"),
-):
-    """Download a project document (research brief, agent report, or final report)."""
-    if doc_type not in CLI_TO_API_DOC_TYPE:
-        console.print(f"[red]Error:[/red] --type must be one of: {', '.join(sorted(CLI_TO_API_DOC_TYPE))}")
-        raise typer.Exit(1)
-
-    api_type = CLI_TO_API_DOC_TYPE[doc_type]
-    client = PodojoClient()
-    try:
-        result = client.get_project_document(project_name, api_type)
-    except httpx.HTTPStatusError as e:
-        if e.response.status_code == 404:
-            console.print(f"[red]Document not found.[/red]")
-            raise typer.Exit(code=1)
-        console.print(f"[red]{e.response.status_code}: {e.response.text}[/red]")
-        raise typer.Exit(code=1)
-
-    content = result.get("content", "")
-    if output:
-        output.write_text(content, encoding="utf-8")
-        console.print(f"Saved to [bold]{output}[/bold]")
-    else:
-        console.print(content)
