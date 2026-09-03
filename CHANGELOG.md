@@ -5,6 +5,15 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.23.0] - 2026-09-03
+
+### Changed
+- AI interviews collect incentive contact details (name, email, country) by
+  default: `collect_contact` now defaults to true for newly created studies,
+  matching how nearly every study is configured in practice. Set
+  `collect_contact: false` to skip the incentive screen. Existing studies keep
+  their stored setting.
+
 ## [1.22.0] - 2026-09-03
 
 ### Removed

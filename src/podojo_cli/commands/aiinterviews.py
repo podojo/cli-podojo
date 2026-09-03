@@ -86,9 +86,9 @@ welcome_message: >
 # Optional: set interview live (default: false)
 # live: true
 
-# Optional: collect participant name/email on a dedicated screen after the
-# interview (default: false)
-# collect_contact: true
+# Optional: collect participant name, email and country on a dedicated
+# incentive screen after the interview (default: true). Set false to skip it.
+# collect_contact: false
 
 # Optional: close the interview automatically once this many participants have
 # completed a session (default: unlimited). The interview goes off live and new
