@@ -12,7 +12,7 @@ from ..config import load_config
 app = typer.Typer(help="Manage AI voice interviews")
 console = Console()
 
-REQUIRED_FIELDS = ["interview_id", "title", "questions", "closing_message"]
+REQUIRED_FIELDS = ["interview_id", "title", "questions"]
 REQUIRED_QUESTION_FIELDS = ["text"]
 
 EXAMPLE_YAML = """\
@@ -20,9 +20,10 @@ EXAMPLE_YAML = """\
 #
 # One file = one study. This YAML is the source of truth: editing it edits the
 # interview. The AI interviewer conducts a voice conversation built from the
-# questions below.
+# questions below. The participant app ends every interview with a fixed
+# thank-you screen — no closing text to author.
 #
-# Required fields: interview_id, title, questions, closing_message
+# Required fields: interview_id, title, questions
 # Optional fields: language (default en-US), project_name, overview,
 #                  decision, screening_questions, welcome_message,
 #                  rejection_message, live, collect_contact, max_responses
@@ -157,10 +158,6 @@ questions:
       before entering your details?
     max_follow_ups: 1
     image_file: ./screenshots/checkout-page.png
-
-closing_message: >
-  Thank you for sharing your experience! Your feedback is incredibly valuable
-  and will help us improve the shopping experience.
 """
 
 

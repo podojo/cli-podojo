@@ -13,7 +13,6 @@ questions:
     max_follow_ups: 3
     probe_for: Specific steps and pain points.
   - text: What would you improve?
-closing_message: Thank you for your time!
 """
 
 LIST_RESPONSE = {
@@ -59,7 +58,6 @@ GET_RESPONSE = {
     "overview": "Study overview",
     "decision": "Improve the thing",
     "questions": [{"text": "Walk me through your last purchase.", "max_follow_ups": 2}],
-    "closing_message": "Thanks!",
     "live": False,
     "max_responses": 20,
     "response_count": 7,
@@ -157,6 +155,28 @@ def test_create_ai_interview(runner, httpx_mock, tmp_path):
     assert "http://interviews.test.local/test-group/test-interview-1" in result.output
 
 
+def test_create_ai_interview_legacy_closing_message(runner, httpx_mock, tmp_path):
+    # YAML files written before the thank-you screen became fixed copy still
+    # carry a closing_message; they must keep validating and creating.
+    yaml_file = tmp_path / "legacy.yaml"
+    yaml_file.write_text(VALID_AI_INTERVIEW_YAML + "closing_message: Thanks!\n")
+
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/ai-interviews",
+        method="POST",
+        json={
+            "id": "abc123",
+            "interview_id": "test-interview-1",
+            "title": "Test AI Interview",
+            "group": "test-group",
+        },
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "create", "-f", str(yaml_file)])
+
+    assert result.exit_code == 0
+
+
 def test_create_ai_interview_collect_contact(runner, httpx_mock, tmp_path):
     yaml_file = tmp_path / "interview.yaml"
     yaml_file.write_text(VALID_AI_INTERVIEW_YAML + "collect_contact: true\n")
@@ -214,7 +234,6 @@ def test_create_ai_interview_question_missing_text(runner, tmp_path):
     yaml_file.write_text(
         "interview_id: test\n"
         "title: Test\n"
-        "closing_message: Thanks!\n"
         "questions:\n"
         "  - section: Intro\n"
     )
@@ -230,7 +249,6 @@ def test_create_ai_interview_invalid_max_follow_ups(runner, tmp_path):
     yaml_file.write_text(
         "interview_id: test\n"
         "title: Test\n"
-        "closing_message: Thanks!\n"
         "questions:\n"
         "  - text: A question\n"
         "    max_follow_ups: -1\n"
@@ -606,7 +624,6 @@ def test_example(runner):
     assert result.exit_code == 0
     assert "interview_id:" in result.output
     assert "questions:" in result.output
-    assert "closing_message:" in result.output
     assert "max_follow_ups:" in result.output
     assert "screening_questions:" in result.output
     assert "welcome_message:" in result.output

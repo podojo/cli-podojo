@@ -5,6 +5,14 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.22.0] - 2026-09-03
+
+### Removed
+- AI interview `closing_message`: the thank-you screen after an interview is
+  now fixed platform copy (like unmoderated usertests). The key is no longer
+  required in YAML files; existing files that still carry it keep working
+  (the value is ignored).
+
 ## [1.21.0] - 2026-08-24
 
 ### Removed
