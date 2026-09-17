@@ -17,7 +17,7 @@ VALID_STEP_VARIANTS = {"question", "task", "instruction"}
 REQUIRED_STEP_FIELDS = ["type", "title"]
 
 RECORDER_SNIPPET = """\
-<script src="https://usertests.podojo.com/player.js"></script>
+<script src="https://usertests.podojo.com/player-v1.js" integrity="sha384-UpKcjeLZtEcYxELLISURK3MAcN3KQdTx8iygewcEWVl8LqgVrftgiMtuMHod7D8e" crossorigin="anonymous"></script>
 <script>
   if (typeof rrweb === "undefined") {
     console.error("[rrweb] failed to load — screen recording disabled");

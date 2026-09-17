@@ -613,5 +613,6 @@ def test_snippet(runner):
     result = runner.invoke(app, ["usertests", "snippet"])
 
     assert result.exit_code == 0
-    assert "player.js" in result.output
+    assert "player-v1.js" in result.output
+    assert 'integrity="sha384-' in result.output
     assert "rrweb.record" in result.output

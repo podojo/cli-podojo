@@ -5,6 +5,14 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.23.1] - 2026-09-18
+
+### Changed
+- The recorder snippet (`podojo usertests snippet`) now loads the versioned,
+  immutable `https://usertests.podojo.com/player-v1.js` pinned with an SRI
+  integrity hash instead of the unversioned `player.js`, which has been
+  retired. Prototypes must use the new snippet.
+
 ## [1.23.0] - 2026-09-03
 
 ### Changed
