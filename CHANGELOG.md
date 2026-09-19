@@ -5,6 +5,13 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.24.0] - 2026-09-19
+
+### Added
+- AI interview closed questions (`screening_questions`) accept an optional
+  `subtitle`: secondary text shown under the question on the participant's
+  screen. The Podojo app authors it too.
+
 ## [1.23.1] - 2026-09-18
 
 ### Changed

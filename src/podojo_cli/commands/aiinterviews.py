@@ -43,6 +43,8 @@ EXAMPLE_YAML = """\
 # Each screening question (optional closed questions, answered on screen
 # before the voice interview starts; answers are recorded with the session):
 #   text            (required) multiple-choice question
+#   subtitle        (optional) secondary text shown under the question on the
+#                   participant's screen
 #   multi_select    (optional, default false) participants can pick several
 #                   options
 #   screener        (optional, default false) the question screens: participants
@@ -102,6 +104,7 @@ welcome_message: >
 # questions marked `screener: true` can screen participants out.
 screening_questions:
   - text: How often do you shop online?
+    subtitle: A quick warm-up question — there are no wrong answers.
     options:
       - text: Rarely or never
       - text: A few times a year
@@ -207,6 +210,13 @@ def validate_ai_interview_data(data: dict) -> list[str]:
                 if not isinstance(question, dict) or "text" not in question:
                     errors.append(f"Screening question {i}: must be a mapping with 'text'")
                     continue
+                subtitle = question.get("subtitle")
+                if subtitle is not None and (
+                    not isinstance(subtitle, str) or not subtitle.strip()
+                ):
+                    errors.append(
+                        f"Screening question {i}: 'subtitle' must be a non-empty string"
+                    )
                 multi_select = question.get("multi_select", False)
                 if not isinstance(multi_select, bool):
                     errors.append(

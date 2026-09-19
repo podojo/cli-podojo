@@ -124,7 +124,9 @@ are recorded with each session. A question marked `screener: true` also gates
 entry: its options carry `qualifies: true` flags, and participants who don't
 pick a qualifying option see the study's `rejection_message` and never reach
 the voice interview. A question can carry a `show_if` condition to appear only
-when an earlier question was answered with specific options. See
+when an earlier question was answered with specific options. Each closed
+question can also carry a `subtitle` — optional secondary text shown under the
+question on the participant's screen. See
 `podojo aiinterviews example` for the exact shape.
 
 ### Synthetic participants

@@ -424,6 +424,91 @@ def test_validate_with_screening(runner, tmp_path):
     assert "Valid AI interview config" in result.output
 
 
+def test_validate_screening_subtitle(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        SCREENING_YAML.replace(
+            "  - text: Do you currently drive for a ridehailing platform?\n",
+            "  - text: Do you currently drive for a ridehailing platform?\n"
+            "    subtitle: There are no wrong answers.\n",
+        )
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 0
+    assert "Valid AI interview config" in result.output
+
+
+def test_validate_screening_subtitle_must_be_a_string(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        VALID_AI_INTERVIEW_YAML
+        + "screening_questions:\n"
+        + "  - text: Q\n"
+        + "    subtitle: 123\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "      - text: B\n"
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'subtitle' must be a non-empty string" in result.output
+
+
+def test_validate_screening_subtitle_must_not_be_empty(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        VALID_AI_INTERVIEW_YAML
+        + "screening_questions:\n"
+        + "  - text: Q\n"
+        + '    subtitle: ""\n'
+        + "    options:\n"
+        + "      - text: A\n"
+        + "      - text: B\n"
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'subtitle' must be a non-empty string" in result.output
+
+
+def test_create_ai_interview_screening_subtitle(runner, httpx_mock, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        SCREENING_YAML.replace(
+            "  - text: Do you currently drive for a ridehailing platform?\n",
+            "  - text: Do you currently drive for a ridehailing platform?\n"
+            "    subtitle: There are no wrong answers.\n",
+        )
+    )
+
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/ai-interviews",
+        method="POST",
+        json={
+            "id": "abc123",
+            "interview_id": "test-interview-1",
+            "title": "Test AI Interview",
+            "group": "test-group",
+        },
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "create", "-f", str(yaml_file)])
+
+    assert result.exit_code == 0
+    request = httpx_mock.get_requests()[-1]
+    import json
+
+    assert (
+        json.loads(request.content)["screening_questions"][0]["subtitle"]
+        == "There are no wrong answers."
+    )
+
+
 def test_validate_screening_question_needs_two_options(runner, tmp_path):
     yaml_file = tmp_path / "interview.yaml"
     yaml_file.write_text(
