@@ -47,6 +47,9 @@ EXAMPLE_YAML = """\
 #                   participant's screen
 #   multi_select    (optional, default false) participants can pick several
 #                   options
+#   max_selections  (optional) cap on picks for multi_select questions, e.g.
+#                   `max_selections: 3`; omit for no limit ("select all that
+#                   apply")
 #   screener        (optional, default false) the question screens: participants
 #                   must pick an option with `qualifies: true`, otherwise they
 #                   see the rejection_message and the interview never starts
@@ -122,6 +125,7 @@ screening_questions:
   # Asked only when the previous question (index 1) was answered "Yes" (option 0)
   - text: What made you abandon the purchase?
     multi_select: true
+    max_selections: 2
     show_if:
       question: 1
       options: [0]
@@ -267,6 +271,27 @@ def validate_ai_interview_data(data: dict) -> list[str]:
                 if not isinstance(options, list) or len(options) < 2:
                     errors.append(f"Screening question {i}: 'options' must list at least 2 options")
                     continue
+                max_selections = question.get("max_selections")
+                if max_selections is not None and (
+                    isinstance(max_selections, bool)
+                    or not isinstance(max_selections, int)
+                    or max_selections < 2
+                ):
+                    errors.append(
+                        f"Screening question {i}: 'max_selections' must be an integer >= 2, "
+                        f"got '{max_selections}'"
+                    )
+                elif max_selections is not None:
+                    if multi_select is not True:
+                        errors.append(
+                            f"Screening question {i}: 'max_selections' requires "
+                            "'multi_select: true'"
+                        )
+                    elif max_selections > len(options):
+                        errors.append(
+                            f"Screening question {i}: 'max_selections' must not exceed the "
+                            f"{len(options)} options"
+                        )
                 qualifying = 0
                 for j, option in enumerate(options, 1):
                     if not isinstance(option, dict) or "text" not in option:

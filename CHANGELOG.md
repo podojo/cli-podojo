@@ -5,6 +5,16 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.25.0] - 2026-09-20
+
+### Added
+- Multi-select closed questions (`screening_questions` with
+  `multi_select: true`) accept an optional `max_selections`: the maximum
+  number of options participants can pick (between 2 and the number of
+  options). Without it there is no limit and participants see "Select all
+  that apply"; with it they see "Select up to N". The Podojo app authors it
+  too.
+
 ## [1.24.0] - 2026-09-19
 
 ### Added

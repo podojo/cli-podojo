@@ -684,6 +684,127 @@ def test_validate_screening_multi_select_must_be_bool(runner, tmp_path):
     assert "'multi_select' must be true or false" in result.output
 
 
+def test_validate_screening_max_selections(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        SCREENING_YAML.replace(
+            "    multi_select: true\n",
+            "    multi_select: true\n    max_selections: 2\n",
+        )
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 0
+    assert "Valid AI interview config" in result.output
+
+
+def test_validate_screening_max_selections_must_be_an_integer(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        VALID_AI_INTERVIEW_YAML
+        + "screening_questions:\n"
+        + "  - text: Q\n"
+        + "    multi_select: true\n"
+        + "    max_selections: two\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "      - text: B\n"
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'max_selections' must be an integer >= 2" in result.output
+
+
+def test_validate_screening_max_selections_must_be_at_least_two(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        VALID_AI_INTERVIEW_YAML
+        + "screening_questions:\n"
+        + "  - text: Q\n"
+        + "    multi_select: true\n"
+        + "    max_selections: 1\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "      - text: B\n"
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'max_selections' must be an integer >= 2" in result.output
+
+
+def test_validate_screening_max_selections_requires_multi_select(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        VALID_AI_INTERVIEW_YAML
+        + "screening_questions:\n"
+        + "  - text: Q\n"
+        + "    max_selections: 2\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "      - text: B\n"
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'max_selections' requires 'multi_select: true'" in result.output
+
+
+def test_validate_screening_max_selections_must_not_exceed_options(runner, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        VALID_AI_INTERVIEW_YAML
+        + "screening_questions:\n"
+        + "  - text: Q\n"
+        + "    multi_select: true\n"
+        + "    max_selections: 3\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "      - text: B\n"
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "must not exceed the 2 options" in result.output
+
+
+def test_create_ai_interview_screening_max_selections(runner, httpx_mock, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(
+        SCREENING_YAML.replace(
+            "    multi_select: true\n",
+            "    multi_select: true\n    max_selections: 2\n",
+        )
+    )
+
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/ai-interviews",
+        method="POST",
+        json={
+            "id": "abc123",
+            "interview_id": "test-interview-1",
+            "title": "Test AI Interview",
+            "group": "test-group",
+        },
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "create", "-f", str(yaml_file)])
+
+    assert result.exit_code == 0
+    request = httpx_mock.get_requests()[-1]
+    import json
+
+    assert (
+        json.loads(request.content)["screening_questions"][1]["max_selections"] == 2
+    )
+
+
 def test_validate_screening_option_qualifies_must_be_bool(runner, tmp_path):
     yaml_file = tmp_path / "interview.yaml"
     yaml_file.write_text(
