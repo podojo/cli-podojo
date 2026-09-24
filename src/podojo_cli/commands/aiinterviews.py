@@ -324,7 +324,7 @@ def _load_yaml(path: Path) -> dict:
         console.print(f"[red]Error:[/red] File not found: {path}")
         raise typer.Exit(1)
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
     except yaml.YAMLError as e:
         console.print(f"[red]Error:[/red] Invalid YAML syntax:\n{e}")

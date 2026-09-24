@@ -5,6 +5,14 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.25.1] - 2026-09-24
+
+### Fixed
+- YAML files for AI interviews and usertests are now read as UTF-8
+  explicitly. Reading them with the machine's locale encoding double-
+  encoded multi-byte characters (em-dashes, arrows) into mojibake when
+  uploading from a Windows machine.
+
 ## [1.25.0] - 2026-09-20
 
 ### Added
