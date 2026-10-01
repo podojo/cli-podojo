@@ -84,7 +84,7 @@ podojo usertests list
 podojo usertests get checkout-usability-v1
 podojo usertests update checkout-usability-v1 -f changes.yaml
 podojo usertests delete checkout-usability-v1
-podojo usertests snippet                  # recorder script for self-hosted prototypes
+podojo usertests snippet                  # recording snippet: two script tags + recorder.js
 ```
 
 A user test can open with an optional participant screener: on-screen

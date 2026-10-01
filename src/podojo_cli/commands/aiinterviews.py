@@ -11,6 +11,7 @@ from ..config import load_config
 
 app = typer.Typer(help="Manage AI voice interviews")
 console = Console()
+err_console = Console(stderr=True, soft_wrap=True)
 
 REQUIRED_FIELDS = ["interview_id", "title", "questions"]
 REQUIRED_QUESTION_FIELDS = ["text"]
@@ -449,16 +450,18 @@ def get_ai_interview(
     for key in ("id", "created_at", "created_by", "last_updated"):
         interview.pop(key, None)
 
-    console.print(yaml.dump(interview, default_flow_style=False, sort_keys=False, allow_unicode=True))
+    # Plain stdout, so `get > file.yaml` round-trips: rich would hard-wrap long
+    # lines and eat [markup]. The info lines go to stderr for the same reason.
+    typer.echo(yaml.dump(interview, default_flow_style=False, sort_keys=False, allow_unicode=True))
     max_responses = interview.get("max_responses")
     if max_responses:
-        console.print(f"Responses: {response_count} / {max_responses}")
+        err_console.print(f"Responses: {response_count} / {max_responses}")
     elif response_count:
-        console.print(f"Responses: {response_count}")
+        err_console.print(f"Responses: {response_count}")
     if group:
         base = _ai_interviews_url()
-        console.print(f"Preview: {base}/preview/{group}/{interview_id}")
-        console.print(f"Live:    {base}/{group}/{interview_id}")
+        err_console.print(f"Preview: {base}/preview/{group}/{interview_id}")
+        err_console.print(f"Live:    {base}/{group}/{interview_id}")
 
 
 @app.command("create")

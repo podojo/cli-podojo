@@ -1,3 +1,5 @@
+import yaml
+
 from podojo_cli.main import app
 
 
@@ -105,6 +107,26 @@ def test_get_usertest(runner, httpx_mock):
     # URLs should be displayed
     assert "https://usertests.podojo.com/preview/test-group/ut-1" in result.output
     assert "https://usertests.podojo.com/test-group?test=ut-1" in result.output
+
+
+def test_get_usertest_stdout_round_trips(runner, httpx_mock):
+    long_url = "https://uxr-prototypes.static.boltable.eu/_t/y2eb-2jft-ekzv-cn53/price-lock-test/1.html"
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/usertests/ut-1",
+        json={
+            **GET_RESPONSE,
+            "prototype_url": long_url,
+            "welcome_text": "Tap [Continue] when you are ready",
+        },
+    )
+
+    result = runner.invoke(app, ["usertests", "get", "ut-1"])
+
+    data = yaml.safe_load(result.stdout)
+    assert data["prototype_url"] == long_url
+    assert data["welcome_text"] == "Tap [Continue] when you are ready"
+    assert "Responses" not in data and "Preview" not in data and "Live" not in data
+    assert "Preview: https://usertests.podojo.com/preview/test-group/ut-1" in result.stderr
 
 
 def test_get_usertest_not_found(runner, httpx_mock):
@@ -615,4 +637,7 @@ def test_snippet(runner):
     assert result.exit_code == 0
     assert "player-v1.js" in result.output
     assert 'integrity="sha384-' in result.output
+    assert '<script src="./recorder.js"></script>' in result.output
     assert "rrweb.record" in result.output
+    # the recording must start from recorder.js: Boltable refuses inline scripts
+    assert "<script>" not in result.output

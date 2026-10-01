@@ -5,6 +5,24 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.25.2] - 2026-10-01
+
+### Changed
+- `usertests snippet` prints the recording snippet as two script tags plus a
+  `recorder.js` file to save next to the pages. The `rrweb.record()` call used
+  to be an inline `<script>`, which Boltable's content security policy
+  refuses, so recording never started on Boltable prototypes. The hints after
+  `usertests create` and on a failed go-live check now say to add the snippet
+  to every page instead of the `<head>`.
+
+### Fixed
+- `usertests get` and `aiinterviews get` print plain YAML, so
+  `get > file.yaml` can be edited and pushed back with `update -f`. The
+  output used to be hard-wrapped at the terminal width (or 80 columns when
+  redirected), which split long links and broke the YAML, and `[...]` text
+  was treated as console markup. The response count and preview/live links
+  now go to stderr, so they no longer end up in the saved file.
+
 ## [1.25.1] - 2026-09-24
 
 ### Fixed

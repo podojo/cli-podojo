@@ -119,6 +119,21 @@ def test_get_ai_interview(runner, httpx_mock):
     assert "http://interviews.test.local/test-group/ai-1" in result.output
 
 
+def test_get_ai_interview_stdout_round_trips(runner, httpx_mock):
+    overview = "Participants [drivers in Tallinn] talk about " + "their last week of rides " * 6
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/ai-interviews/ai-1",
+        json={**GET_RESPONSE, "overview": overview},
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "get", "ai-1"])
+
+    data = yaml.safe_load(result.stdout)
+    assert data["overview"] == overview
+    assert "Responses" not in data and "Preview" not in data and "Live" not in data
+    assert "Responses: 7 / 20" in result.stderr
+
+
 def test_get_ai_interview_not_found(runner, httpx_mock):
     httpx_mock.add_response(
         url="http://test.local/api/v1/ai-interviews/nonexistent",

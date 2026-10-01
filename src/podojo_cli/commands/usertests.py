@@ -10,26 +10,44 @@ from ..client import PodojoClient
 
 app = typer.Typer(help="Manage unmoderated user tests")
 console = Console()
+err_console = Console(stderr=True, soft_wrap=True)
 
 REQUIRED_FIELDS = ["usertest_id", "title", "prototype_url", "steps"]
 VALID_STEP_TYPES = {"screen", "prototype"}
 VALID_STEP_VARIANTS = {"question", "task", "instruction"}
 REQUIRED_STEP_FIELDS = ["type", "title"]
 
-RECORDER_SNIPPET = """\
+# The rrweb.record() call lives in recorder.js rather than an inline <script>:
+# Boltable's CSP refuses inline scripts, so an inline call never runs there.
+SNIPPET_TAGS = """\
 <script src="https://usertests.podojo.com/player-v1.js" integrity="sha384-UpKcjeLZtEcYxELLISURK3MAcN3KQdTx8iygewcEWVl8LqgVrftgiMtuMHod7D8e" crossorigin="anonymous"></script>
-<script>
+<script src="./recorder.js"></script>"""
+
+RECORDER_JS = """\
+(function initRecorder() {
   if (typeof rrweb === "undefined") {
     console.error("[rrweb] failed to load — screen recording disabled");
-  } else {
-    rrweb.record({
-      emit(event) {
-        window.parent.postMessage({ type: "rrweb-event", event: event }, "*");
-      },
-      checkoutEveryNms: 30000,
-    });
+    return;
   }
-</script>
+
+  rrweb.record({
+    emit(event) {
+      window.parent.postMessage({ type: "rrweb-event", event: event }, "*");
+    },
+    checkoutEveryNms: 30000,
+  });
+})();"""
+
+RECORDER_SNIPPET = f"""\
+1. Add these two lines to every HTML page of your prototype, just before </body>:
+
+{SNIPPET_TAGS}
+
+2. Save this as recorder.js in the same folder as your pages:
+
+{RECORDER_JS}
+
+Copy both exactly – any change stops the recording.
 """
 
 EXAMPLE_YAML = """\
@@ -320,7 +338,7 @@ def _print_snippet_gate_error(e: httpx.HTTPStatusError) -> None:
         reason = f"the recording snippet was not found at {url}"
     console.print(f"[red]Error:[/red] Not going live: {reason}.")
     console.print("Without the snippet, participant screens are not recorded.")
-    console.print("  - Add the snippet to your prototype's <head>: [bold]podojo usertests snippet[/bold]")
+    console.print("  - Add the snippet to every page of your prototype: [bold]podojo usertests snippet[/bold]")
     console.print("  - or set [bold]live: false[/bold] to save a draft")
     console.print("  - or re-run with [bold]--allow-missing-snippet[/bold] to go live without screen recording")
 
@@ -404,15 +422,17 @@ def get_usertest(
     for key in ("id", "created_at", "created_by", "last_updated"):
         usertest.pop(key, None)
 
-    console.print(yaml.dump(usertest, default_flow_style=False, sort_keys=False, allow_unicode=True))
+    # Plain stdout, so `get > file.yaml` round-trips: rich would hard-wrap long
+    # lines and eat [markup]. The info lines go to stderr for the same reason.
+    typer.echo(yaml.dump(usertest, default_flow_style=False, sort_keys=False, allow_unicode=True))
     max_responses = usertest.get("max_responses")
     if max_responses:
-        console.print(f"Responses: {response_count} / {max_responses}")
+        err_console.print(f"Responses: {response_count} / {max_responses}")
     elif response_count:
-        console.print(f"Responses: {response_count}")
+        err_console.print(f"Responses: {response_count}")
     if group:
-        console.print(f"Preview: https://usertests.podojo.com/preview/{group}/{usertest_id}")
-        console.print(f"Live:    https://usertests.podojo.com/{group}?test={usertest_id}")
+        err_console.print(f"Preview: https://usertests.podojo.com/preview/{group}/{usertest_id}")
+        err_console.print(f"Live:    https://usertests.podojo.com/{group}?test={usertest_id}")
 
 
 @app.command("create")
@@ -457,8 +477,8 @@ def create_usertest(
         console.print(f"  Preview: https://usertests.podojo.com/preview/{group}/{usertest_id}")
         console.print(f"  Live:    https://usertests.podojo.com/{group}?test={usertest_id}")
     console.print(
-        "\n[dim]If your prototype is self-hosted, add the recorder script to its "
-        "[bold]<head>[/bold] to enable screen recording.\n"
+        "\n[dim]To record participants' screens, every page of your prototype needs "
+        "the recording snippet.\n"
         "Run [bold]podojo usertests snippet[/bold] to print it.[/dim]"
     )
 
@@ -539,5 +559,5 @@ def example():
 
 @app.command("snippet")
 def snippet():
-    """Print the recorder script to embed in self-hosted prototypes."""
+    """Print the recording snippet: two script tags for every page, plus recorder.js."""
     print(RECORDER_SNIPPET)
