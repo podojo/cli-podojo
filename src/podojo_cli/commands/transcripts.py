@@ -52,7 +52,7 @@ def download_transcript(
     text = client.download_transcript(project, batch_id)
 
     if output:
-        output.write_text(text)
+        output.write_text(text, encoding="utf-8")
         console.print(f"Saved to {output}")
     else:
         console.print(text)

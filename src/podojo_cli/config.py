@@ -14,7 +14,7 @@ DEFAULT_AI_INTERVIEWS_URL = "https://ai-interviews.podojo.com"
 def load_config() -> dict:
     config = {}
     if CONFIG_PATH.exists():
-        config = tomllib.loads(CONFIG_PATH.read_text())
+        config = tomllib.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     config.setdefault("base_url", os.getenv("PODOJO_BASE_URL", DEFAULT_BASE_URL))
     config.setdefault(
         "ai_interviews_url", os.getenv("PODOJO_AI_INTERVIEWS_URL", DEFAULT_AI_INTERVIEWS_URL)
@@ -39,10 +39,10 @@ def clear_api_key():
         pass
     if not CONFIG_PATH.exists():
         return
-    config = tomllib.loads(CONFIG_PATH.read_text())
+    config = tomllib.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     config.pop("api_key", None)
     if config:
         lines = "\n".join(f'{k} = "{v}"' for k, v in config.items())
-        CONFIG_PATH.write_text(lines + "\n")
+        CONFIG_PATH.write_text(lines + "\n", encoding="utf-8")
     else:
         CONFIG_PATH.unlink()

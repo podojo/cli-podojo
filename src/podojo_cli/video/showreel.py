@@ -57,7 +57,7 @@ def make_title_card(participant: str, country: str, topic: str, dst: str):
 
 def concatenate(parts: list[str], output: str):
     concat_list = os.path.join(os.path.dirname(output), "_concat.txt")
-    with open(concat_list, "w") as f:
+    with open(concat_list, "w", encoding="utf-8") as f:
         for p in parts:
             f.write(f"file '{os.path.abspath(p)}'\n")
 

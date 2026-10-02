@@ -56,7 +56,7 @@ def create_showreel(
     """
     _check_ffmpeg()
 
-    with open(clips_json) as f:
+    with open(clips_json, encoding="utf-8") as f:
         clips = json.load(f)
 
     if not clips:

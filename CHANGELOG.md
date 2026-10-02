@@ -5,6 +5,16 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.25.3] - 2026-10-02
+
+### Fixed
+- The remaining file reads and writes use UTF-8 explicitly instead of the
+  machine's locale encoding, finishing the Windows (cp1252) fix from 1.25.1:
+  `transcripts download --output` no longer fails on or mis-encodes
+  non-ASCII transcripts, `showreel create` reads the clips JSON as UTF-8 and
+  writes ffmpeg's concat list as UTF-8 (paths with umlauts broke it), and
+  `~/.podojo.toml` is read and written as UTF-8.
+
 ## [1.25.2] - 2026-10-01
 
 ### Changed
