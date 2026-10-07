@@ -5,6 +5,19 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.26.0] - 2026-10-08
+
+### Changed
+- User test `screening_questions` no longer screen by default, matching AI
+  interviews: a question only gates entry when it carries `screener: true`
+  (then at least one option needs `qualifies: true`, as before). Questions
+  without the flag are plain closed questions — every answer is accepted and
+  recorded, and `qualifies` flags are not needed. Mixed `qualifies` flags
+  without `screener: true` are rejected by `validate`/`create`/`update` so a
+  test can't silently stop screening: add `screener: true` to existing
+  screener questions in your YAML files. Tests already stored in Podojo keep
+  screening as before.
+
 ## [1.25.3] - 2026-10-02
 
 ### Fixed

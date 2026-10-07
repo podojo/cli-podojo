@@ -58,15 +58,17 @@ EXAMPLE_YAML = """\
 #                  screening_questions, rejection_message, project_name,
 #                  live, collect_contact, max_responses, required_device
 #
-# Each screening question (optional participant screener, answered on screen
-# before consent — screening is never recorded):
+# Each screening question (optional closed questions, answered on screen
+# before consent and recording; answers are stored with the session):
 #   text            (required) multiple-choice question
 #   multi_select    (optional, default false) participants can pick several
-#                   options; one qualifying pick passes the question
-#   options         (required, at least 2) each with `text` and an optional
-#                   `qualifies: true` — participants must pick a qualifying
-#                   option on every question, otherwise they see the
-#                   rejection_message and the test never starts
+#                   options
+#   screener        (optional, default false) the question screens: participants
+#                   must pick an option with `qualifies: true`, otherwise they
+#                   see the rejection_message and the test never starts
+#   options         (required, at least 2) each with `text`; `qualifies: true`
+#                   marks the accepted answers of a screener question and is
+#                   ignored on plain closed questions
 
 usertest_id: checkout-usability-v1
 title: Checkout Flow Usability Test
@@ -113,20 +115,20 @@ project_name: checkout-redesign-q1
 # never start a screener or use up a session.
 # required_device: mobile
 
-# Optional: participant screener — shown on screen before consent and
-# recording. Only qualified participants reach the test; screen-out answers
-# are still captured for funnel metrics.
+# Optional: closed questions — shown on screen before consent and recording.
+# Answers are captured with the session; only questions marked
+# `screener: true` can screen participants out. Screen-out answers are still
+# captured for funnel metrics.
 screening_questions:
   - text: How often do you shop online?
     options:
       - text: Rarely or never
       - text: A few times a year
       - text: At least once a month
-        qualifies: true
       - text: Weekly or more
-        qualifies: true
 
   - text: Have you abandoned an online purchase at checkout in the past 3 months?
+    screener: true
     options:
       - text: "Yes"
         qualifies: true
@@ -135,6 +137,7 @@ screening_questions:
 
   - text: Which devices do you use to shop online?
     multi_select: true
+    screener: true
     options:
       - text: Phone
         qualifies: true
@@ -255,6 +258,10 @@ def validate_usertest_data(data: dict) -> list[str]:
                     errors.append(
                         f"Screening question {i}: 'multi_select' must be true or false"
                     )
+                screener = question.get("screener", False)
+                if not isinstance(screener, bool):
+                    errors.append(f"Screening question {i}: 'screener' must be true or false")
+                    screener = False
                 options = question.get("options")
                 if not isinstance(options, list) or len(options) < 2:
                     errors.append(f"Screening question {i}: 'options' must list at least 2 options")
@@ -273,9 +280,14 @@ def validate_usertest_data(data: dict) -> list[str]:
                         )
                     elif qualifies:
                         qualifying += 1
-                if qualifying == 0:
+                if screener and qualifying == 0:
                     errors.append(
                         f"Screening question {i}: needs at least one option with 'qualifies: true'"
+                    )
+                if not screener and 0 < qualifying < len(options):
+                    errors.append(
+                        f"Screening question {i}: has non-qualifying options but no "
+                        "'screener: true' — set it, or drop the 'qualifies' flags"
                     )
     return errors
 

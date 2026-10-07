@@ -87,11 +87,13 @@ podojo usertests delete checkout-usability-v1
 podojo usertests snippet                  # recording snippet: two script tags + recorder.js
 ```
 
-A user test can open with an optional participant screener: on-screen
-single-select `screening_questions` whose options carry `qualifies: true`
-flags. Participants must pick a qualifying option on every question; everyone
-else sees the test's `rejection_message` and never reaches the recorded test.
-See `podojo usertests example` for the exact shape.
+A user test can open with optional on-screen `screening_questions` (closed
+questions, single- or multi-select), answered before consent and recording;
+answers are recorded with each session. A question marked `screener: true`
+also gates entry: its options carry `qualifies: true` flags, and participants
+who don't pick a qualifying option see the test's `rejection_message` and
+never reach the recorded test. See `podojo usertests example` for the exact
+shape.
 
 Set `required_device: mobile` or `required_device: desktop` to restrict a test
 to one kind of device. Participants who open the link on the other kind are

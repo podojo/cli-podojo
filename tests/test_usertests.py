@@ -509,12 +509,14 @@ def test_validate_required_device_rejects_other_values(runner, tmp_path):
 SCREENING_YAML = VALID_USERTEST_YAML + """\
 screening_questions:
   - text: Do you shop online?
+    screener: true
     options:
       - text: "Yes"
         qualifies: true
       - text: "No"
   - text: How often do you shop online?
     multi_select: true
+    screener: true
     options:
       - text: Never
       - text: Monthly
@@ -552,12 +554,13 @@ def test_validate_screening_question_needs_two_options(runner, tmp_path):
     assert "'options' must list at least 2 options" in result.output
 
 
-def test_validate_screening_question_needs_a_qualifying_option(runner, tmp_path):
+def test_validate_screener_needs_a_qualifying_option(runner, tmp_path):
     yaml_file = tmp_path / "usertest.yaml"
     yaml_file.write_text(
         VALID_USERTEST_YAML
         + "screening_questions:\n"
         + "  - text: Nobody can pass this one\n"
+        + "    screener: true\n"
         + "    options:\n"
         + "      - text: A\n"
         + "      - text: B\n"
@@ -567,6 +570,61 @@ def test_validate_screening_question_needs_a_qualifying_option(runner, tmp_path)
 
     assert result.exit_code == 1
     assert "needs at least one option with 'qualifies: true'" in result.output
+
+
+def test_validate_plain_closed_question_needs_no_qualifying_option(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(
+        VALID_USERTEST_YAML
+        + "screening_questions:\n"
+        + "  - text: Which device do you use?\n"
+        + "    options:\n"
+        + "      - text: Phone\n"
+        + "      - text: Laptop\n"
+    )
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 0
+    assert "Valid user test config" in result.output
+
+
+def test_validate_rejects_mixed_qualifies_without_screener_flag(runner, tmp_path):
+    # Non-qualifying options are screener intent; without the flag they would
+    # silently stop screening anyone out.
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(
+        VALID_USERTEST_YAML
+        + "screening_questions:\n"
+        + "  - text: Do you shop online?\n"
+        + "    options:\n"
+        + "      - text: \"Yes\"\n"
+        + "        qualifies: true\n"
+        + "      - text: \"No\"\n"
+    )
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "has non-qualifying options but no 'screener: true'" in result.output
+
+
+def test_validate_screening_screener_must_be_bool(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(
+        VALID_USERTEST_YAML
+        + "screening_questions:\n"
+        + "  - text: Q\n"
+        + "    screener: yep\n"
+        + "    options:\n"
+        + "      - text: A\n"
+        + "      - text: B\n"
+    )
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "'screener' must be true or false" in result.output
 
 
 def test_validate_screening_multi_select_must_be_bool(runner, tmp_path):
