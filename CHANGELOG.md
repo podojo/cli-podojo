@@ -5,6 +5,15 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.26.1] - 2026-10-25
+
+### Security
+- Updated certifi to 2026.10.23, which removes the eMudhra/emSign root
+  certificates compromised in October 2026. certifi is the CA bundle httpx
+  uses for every API call to Podojo; without this update a man-in-the-middle
+  with a fraudulently issued certificate could impersonate the Podojo API to
+  the CLI.
+
 ## [1.26.0] - 2026-10-08
 
 ### Changed
