@@ -5,6 +5,15 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.27.0] - 2026-10-27
+
+### Added
+- User test steps support a new screen variant, `ai-question`: an AI voice
+  interviewer asks the step's `text` and up to `max_follow_ups` follow-ups
+  (default 2) aimed at `probe_for`. `podojo usertests validate` checks that
+  `text` is set and rejects `probe_for` / `max_follow_ups` on other steps.
+  `podojo usertests example` shows one.
+
 ## [1.26.1] - 2026-10-25
 
 ### Security

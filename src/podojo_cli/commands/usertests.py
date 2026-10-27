@@ -14,7 +14,7 @@ err_console = Console(stderr=True, soft_wrap=True)
 
 REQUIRED_FIELDS = ["usertest_id", "title", "prototype_url", "steps"]
 VALID_STEP_TYPES = {"screen", "prototype"}
-VALID_STEP_VARIANTS = {"question", "task", "instruction"}
+VALID_STEP_VARIANTS = {"question", "task", "instruction", "ai-question"}
 REQUIRED_STEP_FIELDS = ["type", "title"]
 
 # The rrweb.record() call lives in recorder.js rather than an inline <script>:
@@ -153,7 +153,10 @@ rejection_message: >
 # Steps define what participants see and do
 # Each step requires: type ("screen" or "prototype") and title
 # Screen steps should have a variant: "question" (open-ended), "task" (action-based),
-# or "instruction" (briefing screen shown before a prototype step — uses a "Continue" button)
+# "instruction" (briefing screen shown before a prototype step — uses a "Continue" button),
+# or "ai-question" (an AI voice interviewer asks `text` and up to max_follow_ups follow-ups;
+# `text` is required, optional probe_for says what the follow-ups should dig into,
+# max_follow_ups defaults to 2)
 # Optional per step: text (markdown), and either:
 #   image:      a URL to an externally-hosted image, or
 #   image_file: a path to a local image (uploaded to Podojo storage on create/update;
@@ -183,6 +186,13 @@ steps:
       Using the prototype below, try to buy a pair of running shoes.
       Think aloud as you go through each step.
     # url: https://figma.com/proto/abc123?state=basic-active
+
+  - type: screen
+    variant: ai-question
+    title: About buying the pass
+    text: How did buying the pass go for you?
+    probe_for: What they expected after paying; whether the price was clear
+    max_follow_ups: 2
 
   - type: screen
     variant: task
@@ -243,6 +253,30 @@ def validate_usertest_data(data: dict) -> list[str]:
                     )
                 if "url" in step and not (isinstance(step["url"], str) and step["url"]):
                     errors.append(f"Step {i}: 'url' must be a non-empty string")
+                is_ai_question = step_type == "screen" and variant == "ai-question"
+                if is_ai_question:
+                    text = step.get("text")
+                    if not (isinstance(text, str) and text.strip()):
+                        errors.append(
+                            f"Step {i}: ai-question steps need a non-empty 'text' (the question)"
+                        )
+                    max_follow_ups = step.get("max_follow_ups")
+                    if max_follow_ups is not None and (
+                        isinstance(max_follow_ups, bool)
+                        or not isinstance(max_follow_ups, int)
+                        or max_follow_ups < 0
+                    ):
+                        errors.append(f"Step {i}: 'max_follow_ups' must be a non-negative integer")
+                    probe_for = step.get("probe_for")
+                    if probe_for is not None and not isinstance(probe_for, str):
+                        errors.append(f"Step {i}: 'probe_for' must be a string")
+                else:
+                    # `usertests get` prints them as null on every step; only values count.
+                    for field in ("probe_for", "max_follow_ups"):
+                        if step.get(field) is not None:
+                            errors.append(
+                                f"Step {i}: '{field}' is only allowed on screen steps with variant 'ai-question'"
+                            )
 
     screening_questions = data.get("screening_questions")
     if screening_questions is not None:

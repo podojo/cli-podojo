@@ -699,3 +699,103 @@ def test_snippet(runner):
     assert "rrweb.record" in result.output
     # the recording must start from recorder.js: Boltable refuses inline scripts
     assert "<script>" not in result.output
+
+
+def _validate_steps(runner, tmp_path, steps_yaml):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(
+        VALID_USERTEST_YAML.split("steps:")[0] + "steps:\n" + steps_yaml
+    )
+    return runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+
+def test_validate_ai_question_valid(runner, tmp_path):
+    result = _validate_steps(
+        runner,
+        tmp_path,
+        "  - type: screen\n    variant: ai-question\n    title: Pass\n"
+        "    text: How did buying the pass go?\n    probe_for: price clarity\n"
+        "    max_follow_ups: 0\n",
+    )
+
+    assert result.exit_code == 0
+
+
+def test_validate_ai_question_follow_up_fields_optional(runner, tmp_path):
+    result = _validate_steps(
+        runner,
+        tmp_path,
+        "  - type: screen\n    variant: ai-question\n    title: Pass\n    text: How was it?\n",
+    )
+
+    assert result.exit_code == 0
+
+
+def test_validate_ai_question_requires_text(runner, tmp_path):
+    result = _validate_steps(
+        runner, tmp_path, "  - type: screen\n    variant: ai-question\n    title: Pass\n"
+    )
+
+    assert result.exit_code == 1
+    assert "non-empty 'text'" in result.output
+
+
+def test_validate_ai_question_max_follow_ups_must_be_non_negative_int(runner, tmp_path):
+    for value in ("-1", "1.5", "two", "true"):
+        result = _validate_steps(
+            runner,
+            tmp_path,
+            "  - type: screen\n    variant: ai-question\n    title: Pass\n"
+            f"    text: How was it?\n    max_follow_ups: {value}\n",
+        )
+
+        assert result.exit_code == 1, value
+        assert "max_follow_ups" in result.output
+
+
+def test_validate_ai_question_probe_for_must_be_string(runner, tmp_path):
+    result = _validate_steps(
+        runner,
+        tmp_path,
+        "  - type: screen\n    variant: ai-question\n    title: Pass\n"
+        "    text: How was it?\n    probe_for: 5\n",
+    )
+
+    assert result.exit_code == 1
+    assert "'probe_for' must be a string" in result.output
+
+
+def test_validate_probe_for_rejected_on_other_steps(runner, tmp_path):
+    result = _validate_steps(
+        runner,
+        tmp_path,
+        "  - type: screen\n    variant: question\n    title: Q\n    text: Hi\n"
+        "    probe_for: x\n    max_follow_ups: 2\n",
+    )
+
+    assert result.exit_code == 1
+    assert "'probe_for' is only allowed" in result.output
+    assert "'max_follow_ups' is only allowed" in result.output
+
+
+def test_validate_null_ai_question_fields_on_other_steps(runner, tmp_path):
+    # `usertests get` prints every stored step with these keys, so a fetched
+    # config must validate again unchanged.
+    result = _validate_steps(
+        runner,
+        tmp_path,
+        "  - type: prototype\n    title: Task\n    probe_for: null\n    max_follow_ups: null\n",
+    )
+
+    assert result.exit_code == 0
+
+
+def test_example_template_validates(runner, tmp_path):
+    example = runner.invoke(app, ["usertests", "example"])
+    yaml_file = tmp_path / "example.yaml"
+    yaml_file.write_text(example.output)
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert "variant: ai-question" in example.output
+    assert result.exit_code == 0
