@@ -5,6 +5,13 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.27.1] - 2026-10-29
+
+### Changed
+- AI interview `language` is now a language code, `en` or `de`, and the
+  example config uses `language: en`. The API still accepts older values such
+  as `en-GB`, `de-DE` or `English` and stores them as `en` / `de`.
+
 ## [1.27.0] - 2026-10-27
 
 ### Added

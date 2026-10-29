@@ -25,7 +25,7 @@ EXAMPLE_YAML = """\
 # thank-you screen — no closing text to author.
 #
 # Required fields: interview_id, title, questions
-# Optional fields: language (default en-US), project_name, overview,
+# Optional fields: language (en or de, default en), project_name, overview,
 #                  decision, screening_questions, welcome_message,
 #                  rejection_message, live, collect_contact, max_responses
 #
@@ -64,7 +64,7 @@ EXAMPLE_YAML = """\
 
 interview_id: checkout-experience-v1
 title: Checkout Experience Research
-language: en-US
+language: en
 
 # Optional: link interview to a project
 project_name: checkout-redesign-q1
