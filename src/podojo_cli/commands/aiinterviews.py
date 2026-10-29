@@ -25,6 +25,13 @@ EXAMPLE_YAML = """\
 # thank-you screen — no closing text to author.
 #
 # Required fields: interview_id, title, questions
+#
+# Write the study in English. With language: de, Podojo translates what
+# participants see and hear (title, welcome/rejection message, question texts,
+# screening questions and options) when the study is saved, and again whenever
+# that English changes. The translation isn't part of this file; review it on
+# the study's page in Podojo.
+#
 # Optional fields: language (en or de, default en), project_name, overview,
 #                  decision, screening_questions, welcome_message,
 #                  rejection_message, live, collect_contact, max_responses
@@ -380,6 +387,20 @@ def _format_api_error(e: httpx.HTTPStatusError) -> str:
         return e.response.text
 
 
+def _saving(data: dict):
+    """Spinner while the API saves; a non-English study is translated first."""
+    if data.get("language", "en") == "en":
+        return err_console.status("Saving…")
+    return err_console.status("Saving and translating (this can take a minute)…")
+
+
+def _print_translation_note(result: dict) -> None:
+    if result.get("translation_regenerated"):
+        console.print(
+            "  The translation was generated from the English — review it on the study's page in Podojo."
+        )
+
+
 def _ai_interviews_url() -> str:
     return load_config()["ai_interviews_url"].rstrip("/")
 
@@ -447,7 +468,7 @@ def get_ai_interview(
     # Remove server-managed fields for a clean editable output
     group = interview.pop("group", "")
     response_count = interview.pop("response_count", 0) or 0
-    for key in ("id", "created_at", "created_by", "last_updated"):
+    for key in ("id", "created_at", "created_by", "last_updated", "translations"):
         interview.pop(key, None)
 
     # Plain stdout, so `get > file.yaml` round-trips: rich would hard-wrap long
@@ -481,7 +502,8 @@ def create_ai_interview(
     client = PodojoClient()
     _resolve_image_files(data, from_file.parent, client)
     try:
-        result = client.create_ai_interview(data)
+        with _saving(data):
+            result = client.create_ai_interview(data)
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 409:
             console.print(f"[red]Error:[/red] AI interview '{data.get('interview_id')}' already exists")
@@ -492,6 +514,7 @@ def create_ai_interview(
     interview_id = result.get("interview_id", "")
     group = result.get("group", "")
     console.print(f"[green]Created AI interview:[/green] {interview_id}")
+    _print_translation_note(result)
     if group:
         base = _ai_interviews_url()
         console.print(f"  Preview: {base}/preview/{group}/{interview_id}")
@@ -509,7 +532,8 @@ def update_ai_interview(
     client = PodojoClient()
     _resolve_image_files(data, from_file.parent, client)
     try:
-        result = client.update_ai_interview(interview_id, data)
+        with _saving(data):
+            result = client.update_ai_interview(interview_id, data)
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
             console.print(f"[red]Error:[/red] AI interview '{interview_id}' not found")
@@ -518,6 +542,7 @@ def update_ai_interview(
         raise typer.Exit(1)
 
     console.print(f"[green]Updated AI interview:[/green] {result.get('interview_id', interview_id)}")
+    _print_translation_note(result)
 
 
 @app.command("delete")

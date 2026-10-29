@@ -5,6 +5,19 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.28.0] - 2026-10-29
+
+### Added
+- German AI interviews: with `language: de`, Podojo translates what
+  participants see and hear when the study is saved, and again whenever that
+  English changes. `create` and `update` show a spinner while saving and a
+  note when a translation was generated. The translation isn't part of the
+  YAML: `get` leaves it out, and it is reviewed on the study's page in Podojo.
+
+### Changed
+- `create` and `update` wait up to 2 minutes for the API, since saving a
+  German study includes the translation.
+
 ## [1.27.1] - 2026-10-29
 
 ### Changed

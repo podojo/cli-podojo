@@ -134,6 +134,19 @@ def test_get_ai_interview_stdout_round_trips(runner, httpx_mock):
     assert "Responses: 7 / 20" in result.stderr
 
 
+def test_get_ai_interview_leaves_out_translations(runner, httpx_mock):
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/ai-interviews/ai-1",
+        json={**GET_RESPONSE, "language": "de", "translations": {"de": {"title": "Interview Eins"}}},
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "get", "ai-1"])
+
+    data = yaml.safe_load(result.stdout)
+    assert data["language"] == "de"
+    assert "translations" not in data
+
+
 def test_get_ai_interview_not_found(runner, httpx_mock):
     httpx_mock.add_response(
         url="http://test.local/api/v1/ai-interviews/nonexistent",
@@ -306,6 +319,47 @@ def test_update_ai_interview(runner, httpx_mock, tmp_path):
 
     assert result.exit_code == 0
     assert "Updated AI interview" in result.output
+
+
+def test_create_german_ai_interview_notes_the_translation(runner, httpx_mock, tmp_path):
+    yaml_file = tmp_path / "interview.yaml"
+    yaml_file.write_text(VALID_AI_INTERVIEW_YAML + "language: de\n")
+
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/ai-interviews",
+        method="POST",
+        json={
+            "id": "abc123",
+            "interview_id": "test-interview-1",
+            "title": "Test AI Interview",
+            "group": "test-group",
+            "translation_regenerated": True,
+        },
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "create", "-f", str(yaml_file)])
+
+    assert result.exit_code == 0
+    assert "review it on the study's page" in result.output
+    # The save waits for the translation, so the default 5s timeout won't do.
+    assert httpx_mock.get_request().extensions["timeout"]["read"] == 120.0
+
+
+def test_update_without_new_translation_prints_no_note(runner, httpx_mock, tmp_path):
+    yaml_file = tmp_path / "update.yaml"
+    yaml_file.write_text("live: true\n")
+
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/ai-interviews/ai-1",
+        method="PUT",
+        json={"interview_id": "ai-1", "live": True, "translation_regenerated": False},
+    )
+
+    result = runner.invoke(app, ["aiinterviews", "update", "ai-1", "-f", str(yaml_file)])
+
+    assert result.exit_code == 0
+    assert "translation" not in result.output
+    assert httpx_mock.get_request().extensions["timeout"]["read"] == 120.0
 
 
 def test_update_ai_interview_not_found(runner, httpx_mock, tmp_path):

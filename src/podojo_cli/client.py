@@ -195,11 +195,16 @@ class PodojoClient:
         r.raise_for_status()
         return r.json()
 
+    # Saving a non-English study waits for the server to translate it: about
+    # 15s for a large study, retried once on failure.
+    AI_INTERVIEW_WRITE_TIMEOUT = httpx.Timeout(120.0)
+
     def create_ai_interview(self, data: dict) -> dict:
         r = httpx.post(
             f"{self.base_url}/ai-interviews",
             json=data,
             headers=self._headers(),
+            timeout=self.AI_INTERVIEW_WRITE_TIMEOUT,
         )
         r.raise_for_status()
         return r.json()
@@ -209,6 +214,7 @@ class PodojoClient:
             f"{self.base_url}/ai-interviews/{interview_id}",
             json=data,
             headers=self._headers(),
+            timeout=self.AI_INTERVIEW_WRITE_TIMEOUT,
         )
         r.raise_for_status()
         return r.json()
