@@ -34,7 +34,8 @@ EXAMPLE_YAML = """\
 #
 # Optional fields: language (en or de, default en), project_name, overview,
 #                  decision, screening_questions, welcome_message,
-#                  rejection_message, live, collect_contact, max_responses
+#                  rejection_message, live, collect_contact, follow_up_style,
+#                  max_responses
 #
 # Each question:
 #   text            (required) the main question, asked verbatim-ish in order
@@ -102,6 +103,13 @@ welcome_message: >
 # Optional: collect participant name, email and country on a dedicated
 # incentive screen after the interview (default: true). Set false to skip it.
 # collect_contact: false
+
+# Optional: what the interviewer's follow-ups go after (default: guide).
+#   guide        only covers probe_for, so answers are easier to compare. Best for
+#                benchmarks and concept comparisons.
+#   participant  explores what each person brings up, then any gaps in probe_for.
+#                Best for understanding reasons and finding what you didn't expect.
+# follow_up_style: participant
 
 # Optional: close the interview automatically once this many participants have
 # completed a session (default: unlimited). The interview goes off live and new
@@ -188,6 +196,10 @@ def validate_ai_interview_data(data: dict) -> list[str]:
         isinstance(max_responses, bool) or not isinstance(max_responses, int) or max_responses < 1
     ):
         errors.append("'max_responses' must be a positive integer")
+
+    follow_up_style = data.get("follow_up_style")
+    if follow_up_style is not None and follow_up_style not in ("guide", "participant"):
+        errors.append("'follow_up_style' must be 'guide' or 'participant'")
 
     questions = data.get("questions")
     if questions is not None:

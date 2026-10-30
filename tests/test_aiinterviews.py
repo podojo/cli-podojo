@@ -435,6 +435,20 @@ def test_validate_max_responses(runner, tmp_path):
     assert result.exit_code == 0
 
 
+def test_validate_follow_up_style(runner, tmp_path):
+    yaml_file = tmp_path / "ok.yaml"
+    yaml_file.write_text(VALID_AI_INTERVIEW_YAML + "follow_up_style: guide\n")
+    assert runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)]).exit_code == 0
+
+
+def test_validate_rejects_an_unknown_follow_up_style(runner, tmp_path):
+    yaml_file = tmp_path / "bad.yaml"
+    yaml_file.write_text(VALID_AI_INTERVIEW_YAML + "follow_up_style: freeform\n")
+    result = runner.invoke(app, ["aiinterviews", "validate", str(yaml_file)])
+    assert result.exit_code != 0
+    assert "follow_up_style" in result.output
+
+
 def test_validate_max_responses_must_be_positive(runner, tmp_path):
     yaml_file = tmp_path / "interview.yaml"
     yaml_file.write_text(VALID_AI_INTERVIEW_YAML + "max_responses: 0\n")

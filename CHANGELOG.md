@@ -5,6 +5,13 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.29.0] - 2026-10-30
+
+### Added
+- `follow_up_style` on AI interviews: `guide` (the default) only covers
+  `probe_for`, so answers are easier to compare; `participant` explores what each
+  person brings up, then any gaps in `probe_for`. `podojo aiinterviews example` explains when to use each.
+
 ## [1.28.0] - 2026-10-29
 
 ### Added
