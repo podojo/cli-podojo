@@ -1,6 +1,6 @@
 [project]
 name = "podojo-cli"
-version = "1.29.0"
+version = "1.30.0"
 description = "CLI for the Podojo user research platform"
 readme = "README.md"
 license = "MIT"

@@ -5,6 +5,19 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.30.0] - 2026-10-31
+
+### Added
+- `showreel create --subtitles` burns English subtitles into clips from
+  non-English sessions. English clips stay as they are, and so do clips from
+  sessions transcribed before subtitles were available; both are listed at the
+  end. Subtitled clips sit above a caption band, so captions don't cover the UI.
+
+### Changed
+- `showreel create` checks that ffmpeg has the filters it needs and also finds
+  Homebrew's `ffmpeg-full`. The plain `ffmpeg` formula no longer has text
+  support, so install `ffmpeg-full` if title cards fail.
+
 ## [1.29.0] - 2026-10-30
 
 ### Added

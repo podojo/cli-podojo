@@ -21,7 +21,7 @@ pip install podojo-cli
 
 Requires Python 3.11+. Some commands need extra tooling:
 
-- `showreel` requires [`ffmpeg`](https://ffmpeg.org/) on your `PATH` (`brew install ffmpeg`).
+- `showreel` requires [`ffmpeg`](https://ffmpeg.org/) with text support (`brew install ffmpeg-full`; the plain `ffmpeg` formula leaves it out).
 - `synth` requires the optional `synth` extra: `pip install 'podojo-cli[synth]'` then `playwright install chromium`.
 
 ## Authentication
@@ -68,11 +68,16 @@ podojo transcripts download "Checkout Redesign" <batch-id> -o transcript.txt
 podojo videos list "Checkout Redesign"
 podojo videos download <batch-id> -o clip.mp4
 podojo showreel create clips.json -o showreel.mp4
+podojo showreel create clips.json -o showreel.mp4 --subtitles
 ```
 
 The showreel `clips.json` is a list of clips, each with `batch_id`,
 `participant`, `country`, `topic`, `start`, and `end` (`MM:SS` or `HH:MM:SS`).
 Each clip gets an auto-generated title card.
+
+`--subtitles` burns English subtitles into clips from non-English sessions,
+translated on every run. English clips stay as they are, and so do clips from
+sessions transcribed before subtitles were available; both are listed at the end.
 
 ### Unmoderated user tests
 

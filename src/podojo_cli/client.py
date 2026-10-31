@@ -87,6 +87,20 @@ class PodojoClient:
         r.raise_for_status()
         return r.json()
 
+    # Non-English clips wait for the server to translate them, retried once on
+    # failure.
+    SUBTITLES_TIMEOUT = httpx.Timeout(120.0)
+
+    def get_subtitles(self, batch_id: str, start: str, end: str) -> dict:
+        r = httpx.post(
+            f"{self.base_url}/videos/{batch_id}/subtitles",
+            json={"start": start, "end": end},
+            headers=self._headers(),
+            timeout=self.SUBTITLES_TIMEOUT,
+        )
+        r.raise_for_status()
+        return r.json()
+
     def list_usertests(self, skip: int = 0, limit: int = 50) -> dict:
         r = httpx.get(
             f"{self.base_url}/usertests",

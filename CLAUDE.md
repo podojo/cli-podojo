@@ -8,7 +8,7 @@ CLI tool for the Podojo user research platform. Part of the Podojo multi-repo ar
 - Typer for CLI framework
 - httpx for HTTP client
 - Rich for terminal output
-- ffmpeg for video editing (system dependency, install via `brew install ffmpeg`)
+- ffmpeg for video editing (system dependency, install via `brew install ffmpeg-full`; the plain formula has no text filters)
 
 ## Usage
 
