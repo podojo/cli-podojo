@@ -8,6 +8,7 @@ from rich.progress import Progress
 from rich.table import Table
 
 from ..client import PodojoClient
+from ..tables import print_table
 
 app = typer.Typer(help="Manage videos")
 console = Console()
@@ -32,7 +33,7 @@ def list_videos(project: str = typer.Argument(help="Project name")):
 
     table = Table(title=f"Videos — {project} ({data['total']} total)")
     table.add_column("Date")
-    table.add_column("Batch ID")
+    table.add_column("Batch ID", no_wrap=True)
     table.add_column("Name")
     table.add_column("Duration (min)")
 
@@ -44,7 +45,7 @@ def list_videos(project: str = typer.Argument(help="Project name")):
             str(v.get("duration_minutes", "")),
         )
 
-    console.print(table)
+    print_table(console, table)
 
 
 @app.command("download")

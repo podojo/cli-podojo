@@ -7,6 +7,7 @@ from rich.console import Console
 from rich.table import Table
 
 from ..client import PodojoClient
+from ..tables import print_table
 
 app = typer.Typer(help="Manage unmoderated user tests")
 console = Console()
@@ -423,7 +424,7 @@ def list_usertests(
         return
 
     table = Table(title="User Tests")
-    table.add_column("User Test ID")
+    table.add_column("User Test ID", no_wrap=True)
     table.add_column("Title")
     table.add_column("Steps", justify="right")
     table.add_column("Live")
@@ -444,7 +445,7 @@ def list_usertests(
             s.get("last_updated", ""),
         )
 
-    console.print(table)
+    print_table(console, table)
 
 
 @app.command("get")

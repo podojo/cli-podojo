@@ -5,6 +5,18 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.31.0] - 2026-11-03
+
+### Added
+- `transcripts download <project> --all -o <folder>` downloads every transcript
+  in a project, one `<name> - <batch-id>.txt` per interview, and lists the
+  interviews that have no transcript yet.
+
+### Fixed
+- List tables no longer cut batch, interview and user test IDs. Off a terminal
+  (Claude Code, a pipe) they were squeezed to 80 columns and IDs ended in "…",
+  so agents guessed the rest and got 404s; tables now print at full width there.
+
 ## [1.30.0] - 2026-10-31
 
 ### Added

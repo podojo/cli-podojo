@@ -60,7 +60,11 @@ podojo projects create "Checkout Redesign" --brief "Q1 usability study"
 podojo interviews upload session-03.mp4 --project "Checkout Redesign"
 podojo transcripts list "Checkout Redesign"
 podojo transcripts download "Checkout Redesign" <batch-id> -o transcript.txt
+podojo transcripts download "Checkout Redesign" --all -o transcripts/
 ```
+
+`--all` saves one `<name> - <batch-id>.txt` per interview, so each file carries
+its batch ID for showreel clips.
 
 ### Videos & showreels
 

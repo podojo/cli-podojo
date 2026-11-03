@@ -8,6 +8,7 @@ from rich.table import Table
 
 from ..client import PodojoClient
 from ..config import load_config
+from ..tables import print_table
 
 app = typer.Typer(help="Manage AI voice interviews")
 console = Console()
@@ -436,7 +437,7 @@ def list_ai_interviews(
         return
 
     table = Table(title="AI Interviews")
-    table.add_column("Interview ID")
+    table.add_column("Interview ID", no_wrap=True)
     table.add_column("Title")
     table.add_column("Language")
     table.add_column("Questions", justify="right")
@@ -459,7 +460,7 @@ def list_ai_interviews(
             s.get("last_updated", ""),
         )
 
-    console.print(table)
+    print_table(console, table)
 
 
 @app.command("get")
