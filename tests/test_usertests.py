@@ -1,3 +1,5 @@
+import json
+
 import yaml
 
 from podojo_cli.main import app
@@ -799,3 +801,254 @@ def test_example_template_validates(runner, tmp_path):
 
     assert "variant: ai-question" in example.output
     assert result.exit_code == 0
+
+
+def _quota_yaml(question: str) -> str:
+    return VALID_USERTEST_YAML + "screening_questions:\n" + question
+
+
+def test_validate_quota_valid(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(
+        _quota_yaml(
+            "  - text: How long?\n"
+            "    options:\n"
+            "      - text: Short\n"
+            "        quota: 5\n"
+            "      - text: Long\n"
+            "        quota: null\n"
+            "  - text: Abandoned a purchase?\n"
+            "    screener: true\n"
+            "    options:\n"
+            "      - text: \"Yes\"\n"
+            "        qualifies: true\n"
+            "        quota: 10\n"
+            "      - text: \"No\"\n"
+        )
+    )
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 0
+    assert "Valid user test config" in result.output
+
+
+def test_validate_quota_must_be_a_positive_integer(runner, tmp_path):
+    for bad in ("0", "-2", "1.5", "true", "many"):
+        yaml_file = tmp_path / "usertest.yaml"
+        yaml_file.write_text(
+            _quota_yaml(
+                "  - text: How long?\n"
+                "    options:\n"
+                "      - text: Short\n"
+                f"        quota: {bad}\n"
+                "      - text: Long\n"
+            )
+        )
+
+        result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+        assert result.exit_code == 1, bad
+        assert "Screening question 1, option 1: 'quota' must be a positive integer" in result.output
+
+
+def test_validate_quota_rejected_on_multi_select(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(
+        _quota_yaml(
+            "  - text: Which devices?\n"
+            "    multi_select: true\n"
+            "    options:\n"
+            "      - text: Phone\n"
+            "        quota: 5\n"
+            "      - text: Laptop\n"
+            "        quota: 5\n"
+        )
+    )
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert result.output.count("'quota' isn't supported on multi_select questions") == 1
+    assert "Screening question 1: 'quota' isn't supported on multi_select questions" in result.output
+
+
+def test_validate_quota_on_screener_needs_qualifying_option(runner, tmp_path):
+    yaml_file = tmp_path / "usertest.yaml"
+    yaml_file.write_text(
+        _quota_yaml(
+            "  - text: Abandoned a purchase?\n"
+            "    screener: true\n"
+            "    options:\n"
+            "      - text: \"Yes\"\n"
+            "        qualifies: true\n"
+            "      - text: \"No\"\n"
+            "        quota: 3\n"
+        )
+    )
+
+    result = runner.invoke(app, ["usertests", "validate", str(yaml_file)])
+
+    assert result.exit_code == 1
+    assert "Screening question 1, option 2: 'quota' only works on" in result.output
+    assert "'qualifies: true'" in result.output
+
+
+def test_get_usertest_drops_quota_counts(runner, httpx_mock):
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/usertests/ut-1",
+        json={**GET_RESPONSE, "quota_counts": [[1, 2]]},
+    )
+
+    result = runner.invoke(app, ["usertests", "get", "ut-1"])
+
+    assert result.exit_code == 0
+    assert "quota_counts" not in result.stdout
+
+
+STATUS_RESPONSE = {
+    **GET_RESPONSE,
+    "title": "Customer onboarding test",
+    "live": True,
+    "max_responses": None,
+    "response_count": 12,
+    "screening_questions": [
+        {
+            "text": "How long have you been a customer?",
+            "options": [
+                {"text": "Less than 1 year", "quota": 5},
+                {"text": "1–3 years", "quota": 5},
+                {"text": "More than 3 years", "quota": 5},
+            ],
+        },
+        {"text": "Plain question?", "options": [{"text": "A"}, {"text": "B"}]},
+        {
+            "text": "Are you a buyer?",
+            "screener": True,
+            "options": [
+                {"text": "Yes", "qualifies": True, "quota": 10},
+                {"text": "Sometimes", "qualifies": True},
+                {"text": "No"},
+            ],
+        },
+    ],
+    "quota_counts": [[5, 3, 4], [0, 0], [2, 6, 9]],
+}
+
+
+def test_status_live_with_quotas(runner, httpx_mock):
+    httpx_mock.add_response(url="http://test.local/api/v1/usertests/ut-1", json=STATUS_RESPONSE)
+
+    result = runner.invoke(app, ["usertests", "status", "ut-1"])
+
+    assert result.exit_code == 0
+    assert result.stdout == (
+        "Customer onboarding test · Live\n"
+        "Responses: 12\n"
+        "\n"
+        "How long have you been a customer?\n"
+        "  Less than 1 year   5 /  5  full\n"
+        "  1–3 years          3 /  5  2 left\n"
+        "  More than 3 years  4 /  5  1 left\n"
+        "Are you a buyer?\n"
+        "  Yes                2 / 10  8 left\n"
+        "  Sometimes          6       no limit\n"
+    )
+
+
+def test_status_closed_by_full_question(runner, httpx_mock):
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/usertests/ut-1",
+        json={
+            **STATUS_RESPONSE,
+            "live": False,
+            "max_responses": 50,
+            "quota_counts": [[5, 5, 5], [0, 0], [0, 0, 0]],
+        },
+    )
+
+    result = runner.invoke(app, ["usertests", "status", "ut-1"])
+
+    lines = result.stdout.splitlines()
+    assert lines[0] == "Customer onboarding test · Not live"
+    assert lines[1] == 'Closed automatically: every answer to "How long have you been a customer?" is full'
+    assert lines[2] == "Responses: 12 / 50"
+
+
+def test_status_closed_by_max_responses(runner, httpx_mock):
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/usertests/ut-1",
+        json={**STATUS_RESPONSE, "live": False, "max_responses": 12},
+    )
+
+    result = runner.invoke(app, ["usertests", "status", "ut-1"])
+
+    assert "Closed automatically: max responses reached" in result.stdout
+    assert "Responses: 12 / 12" in result.stdout
+
+
+def test_status_not_live_without_a_reason(runner, httpx_mock):
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/usertests/ut-1",
+        json={**STATUS_RESPONSE, "live": False},
+    )
+
+    result = runner.invoke(app, ["usertests", "status", "ut-1"])
+
+    assert "Not live" in result.stdout
+    assert "Closed automatically" not in result.stdout
+
+
+def test_status_without_quotas(runner, httpx_mock):
+    httpx_mock.add_response(
+        url="http://test.local/api/v1/usertests/ut-1",
+        json={**GET_RESPONSE, "title": "Plain", "live": True, "max_responses": None},
+    )
+
+    result = runner.invoke(app, ["usertests", "status", "ut-1"])
+
+    assert result.exit_code == 0
+    assert result.stdout == "Plain · Live\nResponses: 7\n"
+
+
+def test_status_missing_quota_counts_means_zeros(runner, httpx_mock):
+    data = {k: v for k, v in STATUS_RESPONSE.items() if k != "quota_counts"}
+    httpx_mock.add_response(url="http://test.local/api/v1/usertests/ut-1", json=data)
+
+    result = runner.invoke(app, ["usertests", "status", "ut-1"])
+
+    assert result.exit_code == 0
+    assert "  Less than 1 year   0 /  5  5 left" in result.stdout
+
+
+def test_status_json(runner, httpx_mock):
+    httpx_mock.add_response(url="http://test.local/api/v1/usertests/ut-1", json=STATUS_RESPONSE)
+
+    result = runner.invoke(app, ["usertests", "status", "ut-1", "--json"])
+
+    assert result.exit_code == 0
+    data = json.loads(result.stdout)
+    assert data["usertest_id"] == "ut-1"
+    assert data["live"] is True
+    assert data["response_count"] == 12
+    assert data["max_responses"] is None
+    assert data["closed_reason"] is None
+    assert [q["question"] for q in data["quotas"]] == [
+        "How long have you been a customer?",
+        "Are you a buyer?",
+    ]
+    assert data["quotas"][0]["options"][0] == {
+        "text": "Less than 1 year", "count": 5, "quota": 5, "full": True, "left": 0,
+    }
+    assert data["quotas"][1]["options"][1] == {
+        "text": "Sometimes", "count": 6, "quota": None, "full": False, "left": None,
+    }
+
+
+def test_status_not_found(runner, httpx_mock):
+    httpx_mock.add_response(url="http://test.local/api/v1/usertests/nope", status_code=404)
+
+    result = runner.invoke(app, ["usertests", "status", "nope"])
+
+    assert result.exit_code == 1
+    assert "User test 'nope' not found" in result.output

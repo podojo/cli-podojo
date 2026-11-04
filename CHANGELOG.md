@@ -5,6 +5,17 @@ All notable changes to the Podojo CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.32.0] - 2026-11-04
+
+### Added
+- Answer quotas in the user test YAML: give an option of a single-select
+  screening question a `quota` (completed sessions wanted from participants who
+  pick it). `usertests validate` checks them; `usertests get` leaves the
+  server-managed `quota_counts` out so the output still goes back into `update`.
+- `usertests status <id>` shows responses and how full each quota is, and says
+  when a test closed itself because every answer to a question is full or
+  max_responses was reached. `--json` for scripts.
+
 ## [1.31.0] - 2026-11-03
 
 ### Added

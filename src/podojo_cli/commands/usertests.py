@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import httpx
@@ -70,6 +71,13 @@ EXAMPLE_YAML = """\
 #   options         (required, at least 2) each with `text`; `qualifies: true`
 #                   marks the accepted answers of a screener question and is
 #                   ignored on plain closed questions
+#   quota           (optional, on an option) how many completed sessions you
+#                   want from participants who pick it; once it's full, new
+#                   participants who pick it are turned away. Single-select
+#                   only, and on a screener only with `qualifies: true`. The
+#                   test goes off live when every option that lets people
+#                   through on one question is full. `podojo usertests status`
+#                   shows how full each quota is.
 
 usertest_id: checkout-usability-v1
 title: Checkout Flow Usability Test
@@ -126,7 +134,9 @@ screening_questions:
       - text: Rarely or never
       - text: A few times a year
       - text: At least once a month
+        quota: 10
       - text: Weekly or more
+        quota: 10
 
   - text: Have you abandoned an online purchase at checkout in the past 3 months?
     screener: true
@@ -302,6 +312,12 @@ def validate_usertest_data(data: dict) -> list[str]:
                     errors.append(f"Screening question {i}: 'options' must list at least 2 options")
                     continue
                 qualifying = 0
+                if multi_select is True and any(
+                    isinstance(o, dict) and o.get("quota") is not None for o in options
+                ):
+                    errors.append(
+                        f"Screening question {i}: 'quota' isn't supported on multi_select questions"
+                    )
                 for j, option in enumerate(options, 1):
                     if not isinstance(option, dict) or "text" not in option:
                         errors.append(
@@ -315,6 +331,18 @@ def validate_usertest_data(data: dict) -> list[str]:
                         )
                     elif qualifies:
                         qualifying += 1
+                    quota = option.get("quota")
+                    if quota is None or multi_select is True:
+                        continue
+                    if not isinstance(quota, int) or isinstance(quota, bool) or quota < 1:
+                        errors.append(
+                            f"Screening question {i}, option {j}: 'quota' must be a positive integer"
+                        )
+                    elif screener and qualifies is not True:
+                        errors.append(
+                            f"Screening question {i}, option {j}: 'quota' only works on "
+                            "options with 'qualifies: true'"
+                        )
                 if screener and qualifying == 0:
                     errors.append(
                         f"Screening question {i}: needs at least one option with 'qualifies: true'"
@@ -466,7 +494,7 @@ def get_usertest(
     # Remove server-managed fields for a clean editable output
     group = usertest.pop("group", "")
     response_count = usertest.pop("response_count", 0) or 0
-    for key in ("id", "created_at", "created_by", "last_updated"):
+    for key in ("quota_counts", "id", "created_at", "created_by", "last_updated"):
         usertest.pop(key, None)
 
     # Plain stdout, so `get > file.yaml` round-trips: rich would hard-wrap long
@@ -480,6 +508,104 @@ def get_usertest(
     if group:
         err_console.print(f"Preview: https://usertests.podojo.com/preview/{group}/{usertest_id}")
         err_console.print(f"Live:    https://usertests.podojo.com/{group}?test={usertest_id}")
+
+
+def _quota_status(usertest: dict) -> dict:
+    """Work out each quota's fill level and why a closed test closed."""
+    counts = usertest.get("quota_counts") or []
+    quotas = []
+    closed_question = None
+    for qi, question in enumerate(usertest.get("screening_questions") or []):
+        if question.get("multi_select"):
+            continue
+        screener = question.get("screener", False)
+        question_counts = counts[qi] if qi < len(counts) else []
+        passing = []
+        for oi, option in enumerate(question.get("options") or []):
+            if screener and not option.get("qualifies"):
+                continue
+            count = question_counts[oi] if oi < len(question_counts) else 0
+            quota = option.get("quota")
+            passing.append(
+                {
+                    "text": option["text"],
+                    "count": count,
+                    "quota": quota,
+                    "full": quota is not None and count >= quota,
+                    "left": None if quota is None else max(quota - count, 0),
+                }
+            )
+        if not any(o["quota"] is not None for o in passing):
+            continue
+        quotas.append({"question": question["text"], "options": passing})
+        if closed_question is None and all(o["full"] for o in passing):
+            closed_question = question["text"]
+
+    live = bool(usertest.get("live"))
+    max_responses = usertest.get("max_responses")
+    response_count = usertest.get("response_count") or 0
+    closed_reason = None
+    if not live:
+        if closed_question is not None:
+            closed_reason = f'every answer to "{closed_question}" is full'
+        elif max_responses and response_count >= max_responses:
+            closed_reason = "max responses reached"
+    return {
+        "usertest_id": usertest.get("usertest_id"),
+        "title": usertest.get("title"),
+        "live": live,
+        "response_count": response_count,
+        "max_responses": max_responses,
+        "closed_reason": closed_reason,
+        "quotas": quotas,
+    }
+
+
+@app.command("status")
+def usertest_status(
+    usertest_id: str = typer.Argument(help="User test ID to check"),
+    as_json: bool = typer.Option(False, "--json", help="Output as JSON"),
+):
+    """Show how far a user test is: responses and how full each quota is."""
+    client = PodojoClient()
+    try:
+        usertest = client.get_usertest(usertest_id)
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            console.print(f"[red]Error:[/red] User test '{usertest_id}' not found")
+        else:
+            console.print(f"[red]Error:[/red] {_format_api_error(e)}")
+        raise typer.Exit(1)
+
+    status = _quota_status(usertest)
+    if as_json:
+        typer.echo(json.dumps(status, indent=2, ensure_ascii=False))
+        return
+
+    typer.echo(f"{status['title']} · {'Live' if status['live'] else 'Not live'}")
+    if status["closed_reason"]:
+        typer.echo(f"Closed automatically: {status['closed_reason']}")
+    if status["max_responses"]:
+        typer.echo(f"Responses: {status['response_count']} / {status['max_responses']}")
+    else:
+        typer.echo(f"Responses: {status['response_count']}")
+    all_options = [o for q in status["quotas"] for o in q["options"]]
+    if all_options:
+        typer.echo("")
+    text_width = max((len(o["text"]) for o in all_options), default=0)
+    count_width = max((len(str(o["count"])) for o in all_options), default=0)
+    quota_width = max((len(str(o["quota"])) for o in all_options if o["quota"]), default=0)
+    for quota in status["quotas"]:
+        typer.echo(quota["question"])
+        for o in quota["options"]:
+            progress = f"{o['count']:>{count_width}}"
+            if o["quota"] is None:
+                note = "no limit"
+                progress = f"{progress}   {'':>{quota_width}}"
+            else:
+                progress = f"{progress} / {o['quota']:>{quota_width}}"
+                note = "full" if o["full"] else f"{o['left']} left"
+            typer.echo(f"  {o['text']:<{text_width}}  {progress}  {note}")
 
 
 @app.command("create")

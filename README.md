@@ -92,6 +92,7 @@ podojo usertests create -f my-test.yaml
 podojo usertests list
 podojo usertests get checkout-usability-v1
 podojo usertests update checkout-usability-v1 -f changes.yaml
+podojo usertests status checkout-usability-v1   # responses and how full each answer quota is (--json for scripts)
 podojo usertests delete checkout-usability-v1
 podojo usertests snippet                  # recording snippet: two script tags + recorder.js
 ```
